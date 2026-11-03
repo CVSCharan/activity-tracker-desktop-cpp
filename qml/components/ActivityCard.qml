@@ -19,8 +19,8 @@ Rectangle {
 
     height: 76
     radius: 8
-    color: activityDone ? "#111B15" : (cardHover.hovered ? "#1C2128" : "#161B22")
-    border.color: activityDone ? "#238636" : (cardHover.hovered ? "#58A6FF" : "#30363D")
+    color: card.activityDone ? "#111B15" : (cardHover.hovered ? "#1C2128" : "#161B22")
+    border.color: card.activityDone ? "#238636" : (cardHover.hovered ? "#58A6FF" : "#30363D")
     border.width: 1
 
     Behavior on color { ColorAnimation { duration: 150 } }
@@ -32,13 +32,13 @@ Rectangle {
     Rectangle {
         id: accentStrip
         width: 5
-        height: parent.height - 16
+        height: card.height - 16
         radius: 3
-        anchors.left: parent.left
+        anchors.left: card.left
         anchors.leftMargin: 6
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: card.verticalCenter
         color: {
-            switch (activityCategory) {
+            switch (card.activityCategory) {
             case "Work":     return "#58A6FF"  // Blue
             case "Learning": return "#D29922"  // Amber
             case "Personal": return "#3FB950"  // Green
@@ -60,11 +60,11 @@ Rectangle {
         // ── Done checkbox ─────────────────────────────────────────────────────
         CheckBox {
             id: doneBox
-            checked: activityDone
-            enabled: !activityDone
+            checked: card.activityDone
+            enabled: !card.activityDone
             Material.accent: "#3FB950"
             onCheckedChanged: {
-                if (checked && !activityDone) {
+                if (checked && !card.activityDone) {
                     card.completeRequested()
                 }
             }
@@ -78,12 +78,12 @@ Rectangle {
             // Activity Name (Bright white text, high contrast)
             Text {
                 Layout.fillWidth: true
-                text: activityName.length > 0 ? activityName : "(Untitled Activity)"
-                color: activityDone ? "#6E7681" : "#F0F6FC"
+                text: card.activityName.length > 0 ? card.activityName : "(Untitled Activity)"
+                color: card.activityDone ? "#6E7681" : "#F0F6FC"
                 font.pixelSize: 15
                 font.bold: true
                 elide: Text.ElideRight
-                font.strikeout: activityDone
+                font.strikeout: card.activityDone
             }
 
             // Badges row: Category pill + Duration pill
@@ -96,7 +96,7 @@ Rectangle {
                     implicitWidth: catText.implicitWidth + 14
                     implicitHeight: 20
                     color: {
-                        switch (activityCategory) {
+                        switch (card.activityCategory) {
                         case "Work":     return "#0D1D30"
                         case "Learning": return "#271E06"
                         case "Personal": return "#0F2818"
@@ -104,7 +104,7 @@ Rectangle {
                         }
                     }
                     border.color: {
-                        switch (activityCategory) {
+                        switch (card.activityCategory) {
                         case "Work":     return "#1F6FEB"
                         case "Learning": return "#9E6A03"
                         case "Personal": return "#238636"
@@ -116,11 +116,11 @@ Rectangle {
                     Text {
                         id: catText
                         anchors.centerIn: parent
-                        text: activityCategory.length > 0 ? activityCategory : "General"
+                        text: card.activityCategory.length > 0 ? card.activityCategory : "General"
                         font.pixelSize: 11
                         font.bold: true
                         color: {
-                            switch (activityCategory) {
+                            switch (card.activityCategory) {
                             case "Work":     return "#58A6FF"
                             case "Learning": return "#E3B341"
                             case "Personal": return "#3FB950"
@@ -142,7 +142,7 @@ Rectangle {
                     Text {
                         id: durText
                         anchors.centerIn: parent
-                        text: "⏱ " + activityDuration + " min"
+                        text: "⏱ " + card.activityDuration + " min"
                         font.pixelSize: 11
                         color: "#C9D1D9"
                     }
@@ -153,8 +153,8 @@ Rectangle {
         // ── Delete Button ─────────────────────────────────────────────────────
         Rectangle {
             id: delBtn
-            width: 32
-            height: 32
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             radius: 6
             color: delHover.hovered ? "#38171B" : "transparent"
             border.color: delHover.hovered ? "#F85149" : "transparent"

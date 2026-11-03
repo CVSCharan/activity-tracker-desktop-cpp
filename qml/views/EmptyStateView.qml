@@ -1,7 +1,6 @@
 // EmptyStateView.qml — high-contrast empty state view
 
 import QtQuick
-import QtQuick.Layouts
 
 Column {
     spacing: 14

@@ -41,7 +41,7 @@ ApplicationWindow {
         // ── Top Navigation / Header Bar ───────────────────────────────────────
         Rectangle {
             Layout.fillWidth: true
-            height: 60
+            Layout.preferredHeight: 60
             color: "#161B22"
             border.color: "#30363D"
             border.width: 1
@@ -78,7 +78,7 @@ ApplicationWindow {
                             font.pixelSize: 10
                             font.bold: true
                             color: "#58A6FF"
-                            letterSpacing: 0.5
+                            font.letterSpacing: 0.5
                         }
                     }
                 }
@@ -122,7 +122,7 @@ ApplicationWindow {
 
             // Left Sidebar: Form
             Rectangle {
-                width: 300
+                Layout.preferredWidth: 300
                 Layout.fillHeight: true
                 color: "#161B22"
                 border.color: "#30363D"

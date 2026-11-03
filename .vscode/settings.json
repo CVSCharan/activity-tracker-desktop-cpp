@@ -6,5 +6,11 @@
   "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
   "clangd.arguments": [
     "--compile-commands-dir=${workspaceFolder}"
-  ]
+  ],
+  "qml.importPaths": [
+    "C:/Qt/6.9.3/msvc2022_64/qml",
+    "${workspaceFolder}/build/Debug/qml",
+    "${workspaceFolder}/qml"
+  ],
+  "qml.qmlls.path": "C:/Qt/6.9.3/msvc2022_64/bin/qmlls.exe"
 }

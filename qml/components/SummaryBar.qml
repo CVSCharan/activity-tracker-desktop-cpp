@@ -1,7 +1,6 @@
 // SummaryBar.qml — high-contrast bottom status bar
 
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 Rectangle {
