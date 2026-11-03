@@ -15,5 +15,9 @@
     "${workspaceFolder}/build/Debug/qml",
     "${workspaceFolder}/qml"
   ],
-  "qml.qmlls.path": "C:/Qt/6.9.3/msvc2022_64/bin/qmlls.exe"
+  "qml.qmlls.path": "C:/Qt/6.9.3/msvc2022_64/bin/qmlls.exe",
+  "qml.qmllint.path": "C:/Qt/6.9.3/msvc2022_64/bin/qmllint.exe",
+  "qml.qmllint.ini": "${workspaceFolder}/.qmllint.ini",
+  "qml.qmlls.buildDir": "${workspaceFolder}/build",
+  "qt.qmlls.buildDir": "${workspaceFolder}/build"
 }
