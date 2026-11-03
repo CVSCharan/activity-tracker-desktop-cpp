@@ -20,6 +20,9 @@ ActivityService::ActivityService(QObject *parent)
     const QVector<Activity> saved = JsonStore::load();
     if (!saved.isEmpty())
         m_model->resetWith(saved);
+
+    // Keep stats in sync whenever model row count changes
+    connect(m_model, &ActivityListModel::countChanged, this, &ActivityService::statsChanged);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,6 +48,18 @@ int ActivityService::completedCount() const
         if (a.done) ++count;
     }
     return count;
+}
+
+int ActivityService::pendingCount() const
+{
+    return m_model->count() - completedCount();
+}
+
+int ActivityService::completionPercentage() const
+{
+    const int total = m_model->count();
+    if (total == 0) return 0;
+    return (completedCount() * 100) / total;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,6 +113,7 @@ void ActivityService::markComplete(int index)
     m_model->setDone(index, true);
     save();
     Q_EMIT completedCountChanged();
+    Q_EMIT statsChanged();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

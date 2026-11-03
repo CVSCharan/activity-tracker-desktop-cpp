@@ -17,9 +17,10 @@ class ActivityService : public QObject
     Q_OBJECT
 
     // ── Properties exposed to QML ─────────────────────────────────────────────
-    // READ-only computed property: sum of durationMinutes for all activities today
     Q_PROPERTY(int totalDurationToday READ totalDurationToday NOTIFY totalDurationTodayChanged)
-    Q_PROPERTY(int completedCount READ completedCount NOTIFY completedCountChanged)
+    Q_PROPERTY(int completedCount READ completedCount NOTIFY statsChanged)
+    Q_PROPERTY(int pendingCount READ pendingCount NOTIFY statsChanged)
+    Q_PROPERTY(int completionPercentage READ completionPercentage NOTIFY statsChanged)
 
     // The model itself — QML binds: model: activityService.model
     Q_PROPERTY(ActivityListModel* model READ model CONSTANT)
@@ -30,12 +31,11 @@ public:
     // ── Property getters ──────────────────────────────────────────────────────
     int totalDurationToday() const;
     int completedCount() const;
+    int pendingCount() const;
+    int completionPercentage() const;
     ActivityListModel *model() const { return m_model; }
 
     // ── Q_INVOKABLE methods — callable from QML ───────────────────────────────
-    // 'Q_INVOKABLE' is a marker macro — no code change, just registers the
-    // method with Qt's meta-object system so QML can call it by name.
-
     Q_INVOKABLE void addActivity(const QString &name,
                                  const QString &category,
                                  int durationMinutes);
@@ -46,6 +46,7 @@ public:
 signals:
     void totalDurationTodayChanged();
     void completedCountChanged();
+    void statsChanged();
 
     // Emitted when something goes wrong — QML can connect to show a toast/dialog
     void errorOccurred(const QString &message);

@@ -11,13 +11,13 @@ ListView {
 
     model: activityModel
 
-    topMargin:    16
-    bottomMargin: 16
-    leftMargin:   16
-    rightMargin:  16
+    topMargin:    0
+    bottomMargin: 10
+    leftMargin:   0
+    rightMargin:  0
 
     delegate: Components.ActivityCard {
-        width: listView.width - listView.leftMargin - listView.rightMargin
+        width: listView.width
 
         // Explicit model.role binding ensures Qt 6 resolves model roles reliably
         activityName:      model.name

@@ -104,3 +104,4 @@ We will follow this roadmap to implement features **one by one on a daily basis*
 ---
 
 *We will proceed with Milestone 1.1 immediately: Renaming the application to **CVS Activity Tracker**, adding the application logo to the header and window icon, and verifying the updated build.*
+

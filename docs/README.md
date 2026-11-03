@@ -32,3 +32,4 @@ Welcome to the technical documentation for **CVS Activity Tracker**, built with 
 5. [**05-industry-best-practices-roadmap.md**](05-industry-best-practices-roadmap.md)
    - Commercial desktop standards matrix
    - Day-by-day implementation roadmap (Branding, Splash Screen, Window State, Filter Proxy, System Tray, CSV Export, Logging)
+

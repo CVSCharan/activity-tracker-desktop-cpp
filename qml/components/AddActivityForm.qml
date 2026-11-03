@@ -6,7 +6,7 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 
 ColumnLayout {
-    spacing: 14
+    spacing: 16
 
     // ── Section Title ─────────────────────────────────────────────────────────
     Text {
@@ -32,12 +32,18 @@ ColumnLayout {
         TextField {
             id: nameField
             Layout.fillWidth: true
+            implicitHeight: 42
+            leftPadding: 14
+            rightPadding: 14
+            topPadding: 11
+            bottomPadding: 11
+            verticalAlignment: TextInput.AlignVCenter
             placeholderText: "e.g. Code review, Study QML"
-            placeholderTextColor: "#6E7681"
+            placeholderTextColor: "#8B949E"
             color: "#F0F6FC"
             font.pixelSize: 13
-            Material.accent: "#58A6FF"
             selectByMouse: true
+            clip: true
 
             background: Rectangle {
                 radius: 6
@@ -69,12 +75,15 @@ ColumnLayout {
         ComboBox {
             id: categoryCombo
             Layout.fillWidth: true
+            implicitHeight: 42
+            leftPadding: 14
+            rightPadding: 14
             model: ["Work", "Learning", "Personal"]
             Material.accent: "#58A6FF"
             font.pixelSize: 13
 
             contentItem: Text {
-                leftPadding: 10
+                leftPadding: 4
                 text: categoryCombo.displayText
                 font: categoryCombo.font
                 color: "#F0F6FC"
@@ -105,6 +114,7 @@ ColumnLayout {
         SpinBox {
             id: durationSpinBox
             Layout.fillWidth: true
+            implicitHeight: 42
             from: 5
             to: 480
             value: 30
@@ -133,11 +143,12 @@ ColumnLayout {
         }
     }
 
-    // ── Add Button ────────────────────────────────────────────────────────────
+    // ── Add Button ────────────────────────────────────────────────────
     Button {
         id: addBtn
         Layout.fillWidth: true
         Layout.topMargin: 8
+        implicitHeight: 42
         text: "+ Add Activity"
         font.pixelSize: 14
         font.bold: true

@@ -52,6 +52,7 @@ set(QML_FILES
     qml/components/ActivityCard.qml
     qml/components/AddActivityForm.qml
     qml/components/SummaryBar.qml
+    qml/components/StatsDashboard.qml
 )
 
 # ── Executable ────────────────────────────────────────────────────────────────

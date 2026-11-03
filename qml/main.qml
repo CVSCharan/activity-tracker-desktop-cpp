@@ -134,20 +134,77 @@ ApplicationWindow {
                 }
             }
 
-            // Right Main: Activity Cards List
+            // Right Main: Analytics Cards + Activity List
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 color: "#0D1117"
 
-                Views.ActivityListView {
+                ColumnLayout {
                     anchors.fill: parent
-                    visible: activityModel.count > 0
-                }
+                    anchors.margins: 18
+                    spacing: 16
 
-                Views.EmptyStateView {
-                    anchors.centerIn: parent
-                    visible: activityModel.count === 0
+                    // ── 1. Top Analytics Stats Cards ──────────────────────────
+                    Components.StatsDashboard {
+                        Layout.fillWidth: true
+                    }
+
+                    // ── 2. List Header ────────────────────────────────────────
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        spacing: 8
+
+                        Text {
+                            text: "Activity Feed"
+                            font.pixelSize: 15
+                            font.bold: true
+                            color: "#F0F6FC"
+                        }
+
+                        Rectangle {
+                            radius: 8
+                            color: "#21262D"
+                            border.color: "#30363D"
+                            border.width: 1
+                            implicitWidth: feedCount.implicitWidth + 12
+                            implicitHeight: 20
+
+                            Text {
+                                id: feedCount
+                                anchors.centerIn: parent
+                                text: activityModel.count + " logged"
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: "#8B949E"
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Text {
+                            text: "● Local Engine Active"
+                            font.pixelSize: 11
+                            color: "#3FB950"
+                        }
+                    }
+
+                    // ── 3. Scrollable Activity List ───────────────────────────
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+
+                        Views.ActivityListView {
+                            anchors.fill: parent
+                            visible: activityModel.count > 0
+                        }
+
+                        Views.EmptyStateView {
+                            anchors.centerIn: parent
+                            visible: activityModel.count === 0
+                        }
+                    }
                 }
             }
         }
