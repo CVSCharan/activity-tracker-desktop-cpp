@@ -65,6 +65,7 @@ qt_add_qml_module(ActivityTracker
     URI ActivityTracker          # import ActivityTracker 1.0 in QML
     VERSION 1.0
     QML_FILES ${QML_FILES}
+    RESOURCES resources/icons/app_icon.svg
 )
 
 # ── Link Qt Libraries ─────────────────────────────────────────────────────────

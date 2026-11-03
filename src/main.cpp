@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QIcon>
 #include <QDebug>
 #include <QUrl>
 
@@ -11,16 +12,14 @@
 int main(int argc, char *argv[])
 {
     // ── Application metadata ──────────────────────────────────────────────────
-    // These strings are used by QStandardPaths to compute the data directory:
-    //   Windows: %APPDATA%\9X Trading\ActivityTracker
-    QGuiApplication::setOrganizationName("9X Trading");
-    QGuiApplication::setApplicationName("ActivityTracker");
+    QGuiApplication::setOrganizationName("CVS");
+    QGuiApplication::setApplicationName("CVS Activity Tracker");
+    QGuiApplication::setApplicationDisplayName("CVS Activity Tracker");
     QGuiApplication::setApplicationVersion("1.0.0");
 
     // ── Create the application ────────────────────────────────────────────────
-    // QGuiApplication (not QApplication) because we're using Qt Quick (QML),
-    // not Qt Widgets. It starts the event loop and manages the window system.
     QGuiApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/qt/qml/ActivityTracker/resources/icons/app_icon.svg"));
 
     // ── Set Material style for Qt Quick Controls 2 ───────────────────────────
     // Must be called BEFORE QQmlApplicationEngine is created.

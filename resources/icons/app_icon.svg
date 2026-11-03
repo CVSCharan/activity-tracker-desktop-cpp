@@ -1,27 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1F232A"/>
-      <stop offset="100%" stop-color="#14161B"/>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F242C"/>
+      <stop offset="100%" stop-color="#0D1117"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#58A6FF"/>
       <stop offset="100%" stop-color="#1F6FEB"/>
     </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3FB950"/>
+      <stop offset="100%" stop-color="#238636"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
   </defs>
-  <!-- Card Background -->
-  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#bg)" stroke="#30363D" stroke-width="4"/>
-  <!-- Clipboard / Header Clip -->
-  <rect x="44" y="4" width="40" height="12" rx="6" fill="url(#accent)"/>
-  <!-- Task Item 1 (Done) -->
-  <circle cx="36" cy="42" r="8" fill="#10B981"/>
-  <path d="M32 42 L35 45 L41 38" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <rect x="52" y="38" width="48" height="8" rx="4" fill="#6B7280"/>
-  <!-- Task Item 2 (In progress) -->
-  <circle cx="36" cy="66" r="8" fill="none" stroke="#58A6FF" stroke-width="3"/>
-  <rect x="52" y="62" width="56" height="8" rx="4" fill="#D7DAE0"/>
-  <!-- Task Item 3 (Pending) -->
-  <circle cx="36" cy="90" r="8" fill="none" stroke="#484F58" stroke-width="3"/>
-  <rect x="52" y="86" width="40" height="8" rx="4" fill="#484F58"/>
-</svg>
 
+  <!-- App Rounded Squircle Container -->
+  <rect x="16" y="16" width="224" height="224" rx="52" fill="url(#bgGrad)" stroke="#30363D" stroke-width="6"/>
+
+  <!-- CVS Monogram Badge -->
+  <rect x="78" y="32" width="100" height="26" rx="8" fill="url(#blueGrad)" />
+  <text x="128" y="50" font-family="Segoe UI, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">CVS TECH</text>
+
+  <!-- Activity 1 (Completed) -->
+  <circle cx="68" cy="100" r="16" fill="url(#greenGrad)" />
+  <path d="M60 100 L66 106 L77 92" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="96" y="93" width="92" height="14" rx="7" fill="#6E7681"/>
+
+  <!-- Activity 2 (In Progress - Pulsing Blue Ring) -->
+  <circle cx="68" cy="148" r="15" fill="none" stroke="url(#blueGrad)" stroke-width="5" filter="url(#glow)"/>
+  <circle cx="68" cy="148" r="7" fill="#58A6FF"/>
+  <rect x="96" y="141" width="104" height="14" rx="7" fill="#F0F6FC"/>
+
+  <!-- Activity 3 (Upcoming) -->
+  <circle cx="68" cy="196" r="15" fill="none" stroke="#30363D" stroke-width="4"/>
+  <rect x="96" y="189" width="76" height="14" rx="7" fill="#30363D"/>
+</svg>

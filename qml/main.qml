@@ -15,7 +15,7 @@ ApplicationWindow {
     height: 700
     minimumWidth: 720
     minimumHeight: 520
-    title: "Activity Tracker — C++ / Qt Quick"
+    title: "CVS Activity Tracker"
 
     // ── Dark theme configuration ─────────────────────────────────────────────
     Material.theme:      Material.Dark
@@ -53,18 +53,33 @@ ApplicationWindow {
                     rightMargin: 20
                 }
 
-                // App Title & Icon
+                // Brand Logo & Title
                 RowLayout {
-                    spacing: 10
-                    Text {
-                        text: "📋"
-                        font.pixelSize: 22
+                    spacing: 12
+                    Image {
+                        source: "qrc:/qt/qml/ActivityTracker/resources/icons/app_icon.svg"
+                        sourceSize.width: 34
+                        sourceSize.height: 34
+                        Layout.preferredWidth: 34
+                        Layout.preferredHeight: 34
+                        smooth: true
+                        mipmap: true
                     }
-                    Text {
-                        text: "Activity Tracker"
-                        font.pixelSize: 18
-                        font.bold: true
-                        color: "#F0F6FC"
+                    ColumnLayout {
+                        spacing: 1
+                        Text {
+                            text: "CVS Activity Tracker"
+                            font.pixelSize: 16
+                            font.bold: true
+                            color: "#F0F6FC"
+                        }
+                        Text {
+                            text: "Enterprise Productivity Desk"
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: "#58A6FF"
+                            letterSpacing: 0.5
+                        }
                     }
                 }
 
