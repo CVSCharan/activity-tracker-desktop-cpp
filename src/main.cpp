@@ -8,7 +8,6 @@
 #include <QUrl>
 
 #include "service/ActivityService.h"
-#include "model/ActivityListModel.h"
 
 int main(int argc, char *argv[])
 {
