@@ -81,10 +81,10 @@ target_include_directories(ActivityTracker PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# ── Windows: hide the console window in Release builds ────────────────────────
+# ── Windows: pure GUI application (no CLI console window) ─────────────────────
 if(WIN32)
     set_target_properties(ActivityTracker PROPERTIES
-        WIN32_EXECUTABLE $<CONFIG:Release>
+        WIN32_EXECUTABLE ON
     )
 endif()
 
