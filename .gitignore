@@ -1,0 +1,31 @@
+# Build output
+build/
+cmake-build-*/
+out/
+
+# Qt Creator
+*.user
+*.user.*
+.qtcreator/
+CMakeLists.txt.user
+
+# VS / MSVC
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Generated MOC / RCC / UIC files
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+.vscode/settings.json
