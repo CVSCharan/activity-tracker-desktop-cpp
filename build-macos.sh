@@ -57,3 +57,4 @@ else
     echo "[SUCCESS] macOS Debug Bundle Ready at $BUILD_DIR/ActivityTracker.app"
     echo "======================================================"
 fi
+
