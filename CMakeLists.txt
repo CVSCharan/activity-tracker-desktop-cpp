@@ -17,10 +17,15 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # ── Find Qt6 ──────────────────────────────────────────────────────────────────
-# Guarantee CMAKE_PREFIX_PATH points to Qt6 even if an IDE extension runs cmake without kits
-if((NOT CMAKE_PREFIX_PATH OR NOT Qt6_FOUND) AND EXISTS "C:/Qt/6.9.3/msvc2022_64")
-    set(CMAKE_PREFIX_PATH "C:/Qt/6.9.3/msvc2022_64" CACHE PATH "Qt6 installation path" FORCE)
-    list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.9.3/msvc2022_64")
+# Best Practice: In production and CI/CD, CMAKE_PREFIX_PATH is supplied by
+# the IDE kit (Qt Creator), CMakePresets.json, environment variables, or -D flags.
+# On macOS/Linux, package managers (e.g. Homebrew `brew install qt6` or `apt install qt6-base-dev`)
+# place Qt in standard system paths where find_package finds it automatically.
+# The fallback below only activates on Windows if no prefix path was passed.
+if(NOT DEFINED CMAKE_PREFIX_PATH AND NOT DEFINED ENV{CMAKE_PREFIX_PATH})
+    if(WIN32 AND EXISTS "C:/Qt/6.9.3/msvc2022_64")
+        set(CMAKE_PREFIX_PATH "C:/Qt/6.9.3/msvc2022_64")
+    endif()
 endif()
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS
