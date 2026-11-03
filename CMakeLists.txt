@@ -93,10 +93,20 @@ target_include_directories(ActivityTracker PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# ── Windows: pure GUI application (no CLI console window) ─────────────────────
+# ── Platform Executable Properties ────────────────────────────────────────────
 if(WIN32)
+    # Windows: Pure GUI application (no CLI console window)
     set_target_properties(ActivityTracker PROPERTIES
         WIN32_EXECUTABLE ON
+    )
+elseif(APPLE)
+    # macOS: Native .app bundle with bundle identifier and application metadata
+    set_target_properties(ActivityTracker PROPERTIES
+        MACOSX_BUNDLE ON
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.cvs.activitytracker"
+        MACOSX_BUNDLE_BUNDLE_NAME "CVS Activity Tracker"
+        MACOSX_BUNDLE_BUNDLE_VERSION "1.0.0"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.0"
     )
 endif()
 

@@ -93,6 +93,34 @@ C:\Qt\6.9.3\msvc2022_64\bin\windeployqt6.exe `
 - **Qt Creator:** Open `CMakeLists.txt` → Select kit `Desktop Qt 6.9.3 MSVC 2022 64-bit` → Click the **Hammer icon** (Build, `Ctrl+B`) → Click **Green Play icon** (Run, `Ctrl+R`).
 - **VS Code:** Make sure kit is set to **Visual Studio Community 2022 Release - amd64** → Press `F7` to Build → Press `Shift+F5` to Run.
 
+---
+
+### macOS Build Instructions
+
+#### Prerequisites
+```bash
+brew install qt6 cmake
+```
+
+#### Quick Build Script (Debug or Release)
+```bash
+chmod +x build-macos.sh
+
+# Release mode (default) — compiles and runs macdeployqt
+./build-macos.sh
+
+# Debug mode
+./build-macos.sh Debug
+```
+* **Output:** `build/ActivityTracker.app` (Native macOS Application Bundle)
+* Run it from terminal: `open build/ActivityTracker.app`
+
+---
+
+### Automated Multi-Platform CI/CD (GitHub Actions)
+
+This repository includes a continuous integration workflow ([`.github/workflows/build.yml`](.github/workflows/build.yml)) that automatically compiles, tests, and packages both **Windows (`.exe` + DLLs)** and **macOS (`.app` + `.dmg`)** in both **Debug** and **Release** modes on every push! Download links are published automatically in the GitHub Actions **Artifacts** tab.
+
 ## Data Storage
 
 Activities are persisted to:
