@@ -117,6 +117,13 @@ add_executable(tst_ActivityModel
     src/persistence/JsonStore.cpp
 )
 
+# Exclude test runner executable from Release builds (only build it in Debug mode)
+set_target_properties(tst_ActivityModel PROPERTIES
+    EXCLUDE_FROM_DEFAULT_BUILD_RELEASE TRUE
+    EXCLUDE_FROM_DEFAULT_BUILD_MINSIZEREL TRUE
+    EXCLUDE_FROM_DEFAULT_BUILD_RELWITHDEBINFO TRUE
+)
+
 target_include_directories(tst_ActivityModel PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )

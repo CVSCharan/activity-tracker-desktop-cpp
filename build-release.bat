@@ -18,12 +18,15 @@ if %errorlevel% neq 0 (
 )
 
 echo [2/4] Compiling Release executable (Optimized)...
-"%CMAKE_BIN%" --build build --config Release
+"%CMAKE_BIN%" --build build --config Release --target ActivityTracker
 if %errorlevel% neq 0 (
     echo [ERROR] Release compilation failed.
     pause
     exit /b %errorlevel%
 )
+
+REM Ensure no test runner binary is present in Release distribution
+if exist "build\Release\tst_ActivityModel.exe" del /q "build\Release\tst_ActivityModel.*" >nul 2>&1
 
 echo [3/4] Packaging Qt DLLs with windeployqt6...
 "%WINDEPLOYQT%" --qmldir qml "build\Release\ActivityTracker.exe"
