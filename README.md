@@ -46,8 +46,18 @@ ActivityTracker/
 
 ## Build Instructions
 
-### 1. Configure
+### Quick Option: 1-Click Batch Scripts (Easiest)
 
+In Windows Explorer or terminal, simply double-click:
+- **`build-and-run.bat`**: Configures, compiles Debug mode, deploys dependencies, and launches the app.
+- **`build-release.bat`**: Compiles an optimized, lightweight Release `.exe` and runs `windeployqt6` to create a standalone distribution folder.
+- **`run-tests.bat`**: Runs the complete automated test suite (`ctest`) against the compiled binary.
+
+---
+
+### Manual Option: PowerShell / Command Line
+
+#### 1. Configure CMake
 ```powershell
 C:\Qt\Tools\CMake_64\bin\cmake.exe `
   -S d:\CVS\9X\trading-desktop\ActivityTracker `
@@ -56,31 +66,32 @@ C:\Qt\Tools\CMake_64\bin\cmake.exe `
   -DCMAKE_PREFIX_PATH=C:/Qt/6.9.3/msvc2022_64
 ```
 
-### 2. Build
+#### 2. Compile (Debug or Release)
+- **For Debug mode (faster compilation, debugging symbols):**
+  ```powershell
+  C:\Qt\Tools\CMake_64\bin\cmake.exe --build d:\CVS\9X\trading-desktop\ActivityTracker\build --config Debug
+  ```
+- **For Release mode (optimized performance, ~280 KB exe):**
+  ```powershell
+  C:\Qt\Tools\CMake_64\bin\cmake.exe --build d:\CVS\9X\trading-desktop\ActivityTracker\build --config Release
+  ```
 
-```powershell
-C:\Qt\Tools\CMake_64\bin\cmake.exe `
-  --build d:\CVS\9X\trading-desktop\ActivityTracker\build `
-  --config Debug --parallel 4
-```
-
-### 3. Deploy Qt DLLs (first time only)
-
+#### 3. Bundle Qt Runtime Dependencies (`windeployqt6`)
 ```powershell
 C:\Qt\6.9.3\msvc2022_64\bin\windeployqt6.exe `
   --qmldir d:\CVS\9X\trading-desktop\ActivityTracker\qml `
-  --no-translations `
-  d:\CVS\9X\trading-desktop\ActivityTracker\build\Debug\ActivityTracker.exe
+  d:\CVS\9X\trading-desktop\ActivityTracker\build\Release\ActivityTracker.exe
 ```
 
-### 4. Run
+#### 4. Run the Output Executable
+- **Debug:** `d:\CVS\9X\trading-desktop\ActivityTracker\build\Debug\ActivityTracker.exe`
+- **Release:** `d:\CVS\9X\trading-desktop\ActivityTracker\build\Release\ActivityTracker.exe`
 
-```powershell
-d:\CVS\9X\trading-desktop\ActivityTracker\build\Debug\ActivityTracker.exe
-```
+---
 
-> **Opening in Qt Creator:** File → Open File or Project → select `CMakeLists.txt`.
-> Qt Creator will configure and build automatically when you set the kit to `Qt 6.9.3 MSVC2022 64bit`.
+### IDE Option: Qt Creator / VS Code
+- **Qt Creator:** Open `CMakeLists.txt` → Select kit `Desktop Qt 6.9.3 MSVC 2022 64-bit` → Click the **Hammer icon** (Build, `Ctrl+B`) → Click **Green Play icon** (Run, `Ctrl+R`).
+- **VS Code:** Make sure kit is set to **Visual Studio Community 2022 Release - amd64** → Press `F7` to Build → Press `Shift+F5` to Run.
 
 ## Data Storage
 
