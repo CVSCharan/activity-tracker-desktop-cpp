@@ -1,6 +1,0 @@
-set(__QT_DEPLOY_TARGET_ActivityTracker_FILE D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/ActivityTracker.exe)
-set(__QT_DEPLOY_TARGET_ActivityTracker_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_ActivityTracker_RUNTIME_DLLS C:/Qt/6.9.3/msvc2022_64/bin/Qt6QuickControls2d.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6QuickTemplates2d.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6Quickd.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6QmlMetad.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6QmlWorkerScriptd.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6OpenGLd.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6Guid.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6QmlModelsd.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6Qmld.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6Networkd.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6Cored.dll)
-set(__QT_DEPLOY_TARGET_tst_ActivityModel_FILE D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/tst_ActivityModel.exe)
-set(__QT_DEPLOY_TARGET_tst_ActivityModel_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_tst_ActivityModel_RUNTIME_DLLS C:/Qt/6.9.3/msvc2022_64/bin/Qt6Testd.dll;C:/Qt/6.9.3/msvc2022_64/bin/Qt6Cored.dll)

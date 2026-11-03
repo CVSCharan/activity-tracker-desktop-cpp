@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="/qt/qml/ActivityTracker">
-    <file alias="qmldir">D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/ActivityTracker/qmldir</file>
-  </qresource>
-</RCC>
-
