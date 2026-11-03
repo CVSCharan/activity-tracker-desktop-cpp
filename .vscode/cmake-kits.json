@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Visual Studio Community 2022 Release - amd64",
+    "visualStudio": "Visual Studio Community 2022",
+    "visualStudioArchitecture": "x64",
+    "preferredGenerator": {
+      "name": "Visual Studio 17 2022",
+      "platform": "x64"
+    }
+  }
+]

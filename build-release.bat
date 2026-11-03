@@ -42,3 +42,4 @@ choice /m "Do you want to launch the Release app now"
 if %errorlevel% equ 1 (
     start "" "build\Release\ActivityTracker.exe"
 )
+
