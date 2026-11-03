@@ -1,43 +1,70 @@
-// SummaryBar.qml — bottom status bar showing activity counts and total time
+// SummaryBar.qml — high-contrast bottom status bar
 
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
 Rectangle {
-    height: 36
-    color: "#13151A"
+    height: 42
+    color: "#161B22"
+    border.color: "#30363D"
+    border.width: 1
 
     RowLayout {
         anchors {
             fill: parent
-            leftMargin: 24
-            rightMargin: 24
+            leftMargin: 20
+            rightMargin: 20
         }
-        spacing: 24
+        spacing: 20
 
-        // Bind directly to the C++ model's count property.
-        // When ActivityListModel emits countChanged(), this Text item
-        // re-evaluates automatically — no event listener needed.
-        Text {
-            text: "Total: " + activityModel.count + " activities"
-            color: "#6B7280"
-            font.pixelSize: 12
-        }
-
-        // completedCount is a Q_PROPERTY on ActivityService — reactive binding.
-        Text {
-            text: "Completed: " + activityService.completedCount
-            color: "#10B981"
-            font.pixelSize: 12
+        // Total count badge
+        RowLayout {
+            spacing: 6
+            Text { text: "Total:"; color: "#8B949E"; font.pixelSize: 13 }
+            Text {
+                text: activityModel.count + " items"
+                color: "#F0F6FC"
+                font.bold: true
+                font.pixelSize: 13
+            }
         }
 
-        Item { Layout.fillWidth: true }  // spacer
+        // Completed count badge
+        RowLayout {
+            spacing: 6
+            Text { text: "Completed:"; color: "#8B949E"; font.pixelSize: 13 }
+            Text {
+                text: activityService.completedCount
+                color: "#3FB950"
+                font.bold: true
+                font.pixelSize: 13
+            }
+        }
 
-        Text {
-            text: "Today: " + activityService.totalDurationToday + " min"
-            color: "#58A6FF"
-            font.pixelSize: 12
+        Item { Layout.fillWidth: true }
+
+        // Today duration badge
+        Rectangle {
+            radius: 12
+            color: "#0D1D30"
+            border.color: "#1F6FEB"
+            border.width: 1
+            implicitWidth: durText.implicitWidth + 18
+            implicitHeight: 26
+
+            RowLayout {
+                id: durText
+                anchors.centerIn: parent
+                spacing: 6
+                Text { text: "Today:"; color: "#8B949E"; font.pixelSize: 12 }
+                Text {
+                    text: activityService.totalDurationToday + " min"
+                    color: "#58A6FF"
+                    font.bold: true
+                    font.pixelSize: 12
+                }
+            }
         }
     }
 }

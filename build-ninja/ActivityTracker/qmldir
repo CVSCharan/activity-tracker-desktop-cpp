@@ -1,0 +1,10 @@
+module ActivityTracker
+typeinfo ActivityTracker.qmltypes
+prefer :/qt/qml/ActivityTracker/
+ActivityListView 1.0 qml/views/ActivityListView.qml
+EmptyStateView 1.0 qml/views/EmptyStateView.qml
+ActivityCard 1.0 qml/components/ActivityCard.qml
+AddActivityForm 1.0 qml/components/AddActivityForm.qml
+SummaryBar 1.0 qml/components/SummaryBar.qml
+depends QtQuick
+

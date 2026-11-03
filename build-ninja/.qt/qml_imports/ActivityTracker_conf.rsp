@@ -1,0 +1,15 @@
+-rootPath
+D:/CVS/9X/trading-desktop/ActivityTracker
+-cmake-output
+-output-file
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/qml_imports/ActivityTracker_conf.cmake
+-importPath
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/ActivityTracker
+-importPath
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja
+-importPath
+C:/Qt/6.9.3/msvc2022_64/qml
+-qrcFiles
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/rcc/qmake_ActivityTracker.qrc
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/rcc/ActivityTracker_raw_qml_0.qrc
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/rcc/ActivityTracker_raw_qml_0_extra_qmldirs.qrc

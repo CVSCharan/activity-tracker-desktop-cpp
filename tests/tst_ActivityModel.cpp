@@ -118,3 +118,4 @@ void TestActivityTracker::testJsonStoreSaveAndLoad()
 
 QTEST_MAIN(TestActivityTracker)
 #include "tst_ActivityModel.moc"
+

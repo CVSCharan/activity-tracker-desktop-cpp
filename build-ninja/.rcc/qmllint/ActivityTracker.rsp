@@ -1,0 +1,17 @@
+--bare
+-I
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja
+-I
+C:/Qt/6.9.3/msvc2022_64/qml
+--resource
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/rcc/qmake_ActivityTracker.qrc
+--resource
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/rcc/ActivityTracker_raw_qml_0.qrc
+--resource
+D:/CVS/9X/trading-desktop/ActivityTracker/build-ninja/.qt/rcc/ActivityTracker_raw_qml_0_extra_qmldirs.qrc
+D:/CVS/9X/trading-desktop/ActivityTracker/qml/main.qml
+D:/CVS/9X/trading-desktop/ActivityTracker/qml/views/ActivityListView.qml
+D:/CVS/9X/trading-desktop/ActivityTracker/qml/views/EmptyStateView.qml
+D:/CVS/9X/trading-desktop/ActivityTracker/qml/components/ActivityCard.qml
+D:/CVS/9X/trading-desktop/ActivityTracker/qml/components/AddActivityForm.qml
+D:/CVS/9X/trading-desktop/ActivityTracker/qml/components/SummaryBar.qml

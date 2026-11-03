@@ -1,10 +1,4 @@
 // main.qml — Root application window
-//
-// import statements bring in QML module namespaces:
-//   QtQuick         → basic types: Rectangle, Text, ListView, etc.
-//   QtQuick.Controls→ ApplicationWindow, Button, TextField, etc.
-//   QtQuick.Layouts → ColumnLayout, RowLayout, GridLayout
-//   QtQuick.Controls.Material → Material theme properties
 
 import QtQuick
 import QtQuick.Controls
@@ -17,20 +11,19 @@ import "./components"  as Components
 ApplicationWindow {
     id: root
     visible: true
-    width: 900
-    height: 680
-    minimumWidth: 700
-    minimumHeight: 500
-    title: "Activity Tracker"
+    width: 960
+    height: 700
+    minimumWidth: 720
+    minimumHeight: 520
+    title: "Activity Tracker — C++ / Qt Quick"
 
-    // ── Dark theme (Material design) ─────────────────────────────────────────
-    Material.theme:     Material.Dark
-    Material.accent:    "#58A6FF"   // Blue accent — matches DarkTheme.h from existing repos
-    Material.background:"#181A1F"   // Dark background
+    // ── Dark theme configuration ─────────────────────────────────────────────
+    Material.theme:      Material.Dark
+    Material.accent:     "#58A6FF"
+    Material.background: "#0D1117"
+    color: "#0D1117"
 
-    // ── Error toast state ────────────────────────────────────────────────────
-    // Connections lets you listen to a C++ signal from QML.
-    // activityService.errorOccurred is the signal defined in ActivityService.h
+    // ── Error notification banner ─────────────────────────────────────────────
     Connections {
         target: activityService
         function onErrorOccurred(message) {
@@ -40,81 +33,103 @@ ApplicationWindow {
         }
     }
 
-    // ── Root layout ──────────────────────────────────────────────────────────
+    // ── Main Layout ───────────────────────────────────────────────────────────
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        // ── Header bar ───────────────────────────────────────────────────────
+        // ── Top Navigation / Header Bar ───────────────────────────────────────
         Rectangle {
             Layout.fillWidth: true
-            height: 56
-            color: "#21252B"
+            height: 60
+            color: "#161B22"
+            border.color: "#30363D"
+            border.width: 1
 
             RowLayout {
                 anchors {
-                    left: parent.left
-                    right: parent.right
-                    verticalCenter: parent.verticalCenter
-                    leftMargin: 24
-                    rightMargin: 24
+                    fill: parent
+                    leftMargin: 20
+                    rightMargin: 20
                 }
 
-                Text {
-                    text: "📋  Activity Tracker"
-                    font.pixelSize: 20
-                    font.bold: true
-                    color: "#D7DAE0"
+                // App Title & Icon
+                RowLayout {
+                    spacing: 10
+                    Text {
+                        text: "📋"
+                        font.pixelSize: 22
+                    }
+                    Text {
+                        text: "Activity Tracker"
+                        font.pixelSize: 18
+                        font.bold: true
+                        color: "#F0F6FC"
+                    }
                 }
 
-                Item { Layout.fillWidth: true }  // spacer
+                Item { Layout.fillWidth: true }
 
-                // Summary: total minutes today
-                Text {
-                    text: "Today: " + activityService.totalDurationToday + " min"
-                    color: "#58A6FF"
-                    font.pixelSize: 14
+                // Quick stats pill in header
+                Rectangle {
+                    radius: 12
+                    color: "#21262D"
+                    border.color: "#30363D"
+                    border.width: 1
+                    implicitWidth: headerStats.implicitWidth + 20
+                    implicitHeight: 28
+
+                    RowLayout {
+                        id: headerStats
+                        anchors.centerIn: parent
+                        spacing: 8
+                        Text {
+                            text: "Today's Logged:"
+                            color: "#8B949E"
+                            font.pixelSize: 12
+                        }
+                        Text {
+                            text: activityService.totalDurationToday + " min"
+                            color: "#58A6FF"
+                            font.bold: true
+                            font.pixelSize: 12
+                        }
+                    }
                 }
             }
         }
 
-        // ── Main content area: sidebar + list ────────────────────────────────
+        // ── Center Content Area ───────────────────────────────────────────────
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: 0
 
-            // Left panel: Add form
+            // Left Sidebar: Form
             Rectangle {
-                width: 280
+                width: 300
                 Layout.fillHeight: true
-                color: "#1E2127"
+                color: "#161B22"
+                border.color: "#30363D"
+                border.width: 1
 
                 Components.AddActivityForm {
                     anchors.fill: parent
-                    anchors.margins: 16
+                    anchors.margins: 18
                 }
             }
 
-            // Divider
+            // Right Main: Activity Cards List
             Rectangle {
-                width: 1
-                Layout.fillHeight: true
-                color: "#2D3139"
-            }
-
-            // Right panel: activity list (or empty state)
-            Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                color: "#0D1117"
 
-                // Show list when there are activities
                 Views.ActivityListView {
                     anchors.fill: parent
                     visible: activityModel.count > 0
                 }
 
-                // Show empty state when list is empty
                 Views.EmptyStateView {
                     anchors.centerIn: parent
                     visible: activityModel.count === 0
@@ -122,13 +137,13 @@ ApplicationWindow {
             }
         }
 
-        // ── Summary bar (bottom strip) ────────────────────────────────────────
+        // ── Bottom Summary Bar ────────────────────────────────────────────────
         Components.SummaryBar {
             Layout.fillWidth: true
         }
     }
 
-    // ── Error toast ───────────────────────────────────────────────────────────
+    // ── Floating Error Toast ──────────────────────────────────────────────────
     Rectangle {
         id: errorBar
         property alias text: errorLabel.text
@@ -140,23 +155,25 @@ ApplicationWindow {
         }
 
         visible: false
-        width: errorLabel.implicitWidth + 32
-        height: 40
-        radius: 6
-        color: "#C0392B"
+        width: errorLabel.implicitWidth + 36
+        height: 42
+        radius: 8
+        color: "#DA3633"
+        border.color: "#F85149"
+        border.width: 1
 
         Text {
             id: errorLabel
             anchors.centerIn: parent
-            color: "white"
+            color: "#FFFFFF"
             font.pixelSize: 13
+            font.bold: true
         }
 
         Timer {
             id: errorTimer
-            interval: 3000
+            interval: 3500
             onTriggered: errorBar.visible = false
         }
     }
 }
-

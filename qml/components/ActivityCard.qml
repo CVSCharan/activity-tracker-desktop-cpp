@@ -1,7 +1,4 @@
-// ActivityCard.qml — displays one activity row
-//
-// 'required property' means the parent MUST set this when using the component.
-// Equivalent to a required prop in React: PropTypes.isRequired
+// ActivityCard.qml — high-contrast modern activity card
 
 import QtQuick
 import QtQuick.Controls
@@ -11,34 +8,41 @@ import QtQuick.Layouts
 Rectangle {
     id: card
 
-    // ── Required props from parent ────────────────────────────────────────────
     required property string activityName
     required property string activityCategory
     required property int    activityDuration
     required property bool   activityDone
     required property int    activityIndex
 
-    // ── Signals — events this component raises to its parent ──────────────────
-    // JS analogy: custom events (CustomEvent / EventEmitter)
     signal removeRequested()
     signal completeRequested()
 
-    // ── Appearance ────────────────────────────────────────────────────────────
-    height: 72
+    height: 76
     radius: 8
-    color: activityDone ? "#1A2F1A" : "#21252B"  // green tint when done
+    color: activityDone ? "#111B15" : (cardHover.hovered ? "#1C2128" : "#161B22")
+    border.color: activityDone ? "#238636" : (cardHover.hovered ? "#58A6FF" : "#30363D")
+    border.width: 1
 
-    // Subtle left-side accent bar (category color indicator)
+    Behavior on color { ColorAnimation { duration: 150 } }
+    Behavior on border.color { ColorAnimation { duration: 150 } }
+
+    HoverHandler { id: cardHover }
+
+    // Left accent category strip
     Rectangle {
-        width: 4
-        height: parent.height
-        radius: 2
+        id: accentStrip
+        width: 5
+        height: parent.height - 16
+        radius: 3
+        anchors.left: parent.left
+        anchors.leftMargin: 6
+        anchors.verticalCenter: parent.verticalCenter
         color: {
             switch (activityCategory) {
-            case "Work":     return "#58A6FF"
-            case "Learning": return "#F59E0B"
-            case "Personal": return "#10B981"
-            default:         return "#6B7280"
+            case "Work":     return "#58A6FF"  // Blue
+            case "Learning": return "#D29922"  // Amber
+            case "Personal": return "#3FB950"  // Green
+            default:         return "#8B949E"
             }
         }
     }
@@ -46,8 +50,8 @@ Rectangle {
     RowLayout {
         anchors {
             fill: parent
-            leftMargin: 16
-            rightMargin: 12
+            leftMargin: 20
+            rightMargin: 16
             topMargin: 8
             bottomMargin: 8
         }
@@ -55,49 +59,119 @@ Rectangle {
 
         // ── Done checkbox ─────────────────────────────────────────────────────
         CheckBox {
+            id: doneBox
             checked: activityDone
-            enabled: !activityDone           // can't un-complete
+            enabled: !activityDone
+            Material.accent: "#3FB950"
             onCheckedChanged: {
-                if (checked) card.completeRequested()
+                if (checked && !activityDone) {
+                    card.completeRequested()
+                }
             }
-            Material.accent: "#10B981"       // green checkmark
         }
 
-        // ── Name + category ───────────────────────────────────────────────────
+        // ── Title + Metadata badges ───────────────────────────────────────────
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: 6
 
+            // Activity Name (Bright white text, high contrast)
             Text {
                 Layout.fillWidth: true
-                text: activityName
-                color: activityDone ? "#6B7280" : "#D7DAE0"
-                font.pixelSize: 14
+                text: activityName.length > 0 ? activityName : "(Untitled Activity)"
+                color: activityDone ? "#6E7681" : "#F0F6FC"
+                font.pixelSize: 15
                 font.bold: true
-                elide: Text.ElideRight      // truncate with '…' if too long
+                elide: Text.ElideRight
                 font.strikeout: activityDone
             }
 
-            Text {
-                text: activityCategory + "  •  " + activityDuration + " min"
-                color: "#6B7280"
-                font.pixelSize: 12
+            // Badges row: Category pill + Duration pill
+            RowLayout {
+                spacing: 8
+
+                // Category pill
+                Rectangle {
+                    radius: 10
+                    implicitWidth: catText.implicitWidth + 14
+                    implicitHeight: 20
+                    color: {
+                        switch (activityCategory) {
+                        case "Work":     return "#0D1D30"
+                        case "Learning": return "#271E06"
+                        case "Personal": return "#0F2818"
+                        default:         return "#161B22"
+                        }
+                    }
+                    border.color: {
+                        switch (activityCategory) {
+                        case "Work":     return "#1F6FEB"
+                        case "Learning": return "#9E6A03"
+                        case "Personal": return "#238636"
+                        default:         return "#30363D"
+                        }
+                    }
+                    border.width: 1
+
+                    Text {
+                        id: catText
+                        anchors.centerIn: parent
+                        text: activityCategory.length > 0 ? activityCategory : "General"
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: {
+                            switch (activityCategory) {
+                            case "Work":     return "#58A6FF"
+                            case "Learning": return "#E3B341"
+                            case "Personal": return "#3FB950"
+                            default:         return "#8B949E"
+                            }
+                        }
+                    }
+                }
+
+                // Duration pill
+                Rectangle {
+                    radius: 10
+                    implicitWidth: durText.implicitWidth + 14
+                    implicitHeight: 20
+                    color: "#21262D"
+                    border.color: "#30363D"
+                    border.width: 1
+
+                    Text {
+                        id: durText
+                        anchors.centerIn: parent
+                        text: "⏱ " + activityDuration + " min"
+                        font.pixelSize: 11
+                        color: "#C9D1D9"
+                    }
+                }
             }
         }
 
-        // ── Delete button ─────────────────────────────────────────────────────
-        RoundButton {
-            flat: true
-            text: "🗑"
-            font.pixelSize: 16
-            implicitWidth: 36
-            implicitHeight: 36
-            opacity: deleteHover.containsMouse ? 1.0 : 0.5
+        // ── Delete Button ─────────────────────────────────────────────────────
+        Rectangle {
+            id: delBtn
+            width: 32
+            height: 32
+            radius: 6
+            color: delHover.hovered ? "#38171B" : "transparent"
+            border.color: delHover.hovered ? "#F85149" : "transparent"
+            border.width: 1
 
-            onClicked: card.removeRequested()
+            Text {
+                anchors.centerIn: parent
+                text: "✕"
+                font.pixelSize: 14
+                font.bold: true
+                color: delHover.hovered ? "#FF7B72" : "#6E7681"
+            }
 
-            HoverHandler { id: deleteHover }
+            HoverHandler { id: delHover }
+            TapHandler {
+                onTapped: card.removeRequested()
+            }
         }
     }
 }
-
