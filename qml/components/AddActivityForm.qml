@@ -124,7 +124,7 @@ ColumnLayout {
             font.pixelSize: 13
 
             contentItem: TextInput {
-                text: durationSpinBox.textFromValue(durationSpinBox.value, durationSpinBox.locale)
+                text: durationSpinBox.value.toString()
                 font: durationSpinBox.font
                 color: "#F0F6FC"
                 horizontalAlignment: Qt.AlignHCenter

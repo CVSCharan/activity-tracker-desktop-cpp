@@ -1,7 +1,6 @@
 // StatsDashboard.qml — top summary cards displaying high-level metrics
 
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 RowLayout {
@@ -12,7 +11,7 @@ RowLayout {
     component StatCard: Rectangle {
         id: cardRoot
         Layout.fillWidth: true
-        height: 84
+        Layout.preferredHeight: 84
         radius: 10
         color: cardHover.hovered ? "#1C2128" : "#161B22"
         border.color: cardHover.hovered ? accentColor : "#30363D"
@@ -32,11 +31,11 @@ RowLayout {
         // Subtle left vertical accent indicator
         Rectangle {
             width: 4
-            height: parent.height - 24
+            height: cardRoot.height - 24
             radius: 2
-            anchors.left: parent.left
+            anchors.left: cardRoot.left
             anchors.leftMargin: 8
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenter: cardRoot.verticalCenter
             color: accentColor
         }
 
@@ -60,7 +59,7 @@ RowLayout {
                     font.pixelSize: 11
                     font.bold: true
                     color: "#8B949E"
-                    letterSpacing: 0.5
+                    font.letterSpacing: 0.5
                 }
 
                 Text {
@@ -80,8 +79,8 @@ RowLayout {
 
             // Circular Icon Badge
             Rectangle {
-                width: 38
-                height: 38
+                Layout.preferredWidth: 38
+                Layout.preferredHeight: 38
                 radius: 19
                 color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.15)
                 border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.3)
@@ -139,4 +138,3 @@ RowLayout {
         }
     }
 }
-

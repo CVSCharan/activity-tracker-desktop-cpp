@@ -2,7 +2,6 @@
   "configurations": [
     {
       "name": "Win32-Qt6",
-      "compileCommands": "${workspaceFolder}/compile_commands.json",
       "includePath": [
         "${workspaceFolder}/src/**",
         "C:/Qt/6.9.3/msvc2022_64/include/**",
@@ -27,6 +26,11 @@
         "QT_QUICK_LIB",
         "QT_QML_LIB",
         "QT_TESTLIB_LIB"
+      ],
+      "compilerArgs": [
+        "/Zc:__cplusplus",
+        "/Zc:preprocessor",
+        "/permissive-"
       ],
       "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe",
       "cStandard": "c17",

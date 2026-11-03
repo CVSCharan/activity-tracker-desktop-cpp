@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(MSVC)
+    add_compile_options(/Zc:__cplusplus /Zc:preprocessor /permissive-)
+endif()
+
 # ── Qt Automation ─────────────────────────────────────────────────────────────
 # AUTOMOC: auto-runs moc on Q_OBJECT classes (generates signal/slot plumbing)
 # AUTORCC: auto-compiles .qrc resource files
@@ -13,8 +17,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # ── Find Qt6 ──────────────────────────────────────────────────────────────────
-# Default to installed Qt6 if CMAKE_PREFIX_PATH was not passed explicitly
-if(NOT DEFINED CMAKE_PREFIX_PATH AND EXISTS "C:/Qt/6.9.3/msvc2022_64")
+# Guarantee CMAKE_PREFIX_PATH points to Qt6 even if an IDE extension runs cmake without kits
+if((NOT CMAKE_PREFIX_PATH OR NOT Qt6_FOUND) AND EXISTS "C:/Qt/6.9.3/msvc2022_64")
+    set(CMAKE_PREFIX_PATH "C:/Qt/6.9.3/msvc2022_64" CACHE PATH "Qt6 installation path" FORCE)
     list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.9.3/msvc2022_64")
 endif()
 
