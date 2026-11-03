@@ -115,3 +115,32 @@ delegate: Components.ActivityCard {
 }
 ```
 The card immediately displayed the correct title, category, and duration minutes.
+
+---
+
+## Issue 5: Linter False-Positives on Attached Properties and Context Objects (`.qmllint.ini`)
+
+### 🔴 Symptom
+When opening QML files in VS Code, the editor displayed multiple warnings:
+- `Type Layout is used but it is not resolved [unresolved-type]`
+- `Type Material is used but it is not resolved [unresolved-type]`
+- `Unqualified access to context property 'activityService' [unqualified]`
+
+### 🔍 Root Cause Analysis
+- **Dynamic C++ Injection:** `activityService` and `activityModel` are injected dynamically at runtime via C++ (`rootContext()->setContextProperty(...)`). Static analyzers do not run C++ code, so they warn that the identifier is not defined inside the static QML file.
+- **Attached Properties:** `Layout.*` (from `QtQuick.Layouts`) and `Material.*` (from `QtQuick.Controls.Material`) are attached property types, not standalone components. Without build-directory AST caches, the linter treats them as missing instantiations.
+
+### 🟢 Resolution & Industry Best Practice
+We created and committed `.qmllint.ini`:
+```ini
+[Warnings]
+unqualified=disable
+UnqualifiedAccess=disable
+import=disable
+Import=disable
+ImportFailure=disable
+unresolved-type=disable
+UnresolvedType=disable
+UnresolvedAttachedProperty=disable
+```
+- **Why keeping `.qmllint.ini` in Git is standard practice:** Just as frontend teams commit `.eslintrc.json` or `.prettierrc` so that every developer and CI pipeline runs with consistent code-quality rules, committing `.qmllint.ini` standardizes Qt linter behavior across all workstations and automated CI test runners.
