@@ -23,3 +23,4 @@ public:
 private:
     static QString filePath();  // resolves the storage path
 };
+

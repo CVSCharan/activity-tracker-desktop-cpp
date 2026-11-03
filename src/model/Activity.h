@@ -33,3 +33,4 @@ struct Activity
                            const QString &category,
                            int durationMinutes);
 };
+

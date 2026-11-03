@@ -104,3 +104,4 @@ Activities are persisted to:
 | `AddActivityForm.qml` | `TextField`, `ComboBox`, `SpinBox`, form validation |
 | `ActivityListView.qml` | `ListView`, delegate binding, `ScrollBar` |
 | `SummaryBar.qml` | Reactive bindings to C++ `Q_PROPERTY` |
+

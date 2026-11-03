@@ -1,5 +1,7 @@
 #include "Activity.h"
 #include <QUuid>
+#include <QString>
+#include <QDateTime>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Activity::create  — static factory
@@ -26,3 +28,4 @@ Activity Activity::create(const QString &name,
     a.createdAt        = QDateTime::currentDateTime();        // like new Date()
     return a;                                                 // returned by value (cheap: compiler elides the copy)
 }
+

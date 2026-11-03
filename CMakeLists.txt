@@ -13,13 +13,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # ── Find Qt6 ──────────────────────────────────────────────────────────────────
-# If cmake can't find Qt automatically, pass -DCMAKE_PREFIX_PATH=C:/Qt/6.9.3/msvc2022_64
+# Default to installed Qt6 if CMAKE_PREFIX_PATH was not passed explicitly
+if(NOT DEFINED CMAKE_PREFIX_PATH AND EXISTS "C:/Qt/6.9.3/msvc2022_64")
+    list(APPEND CMAKE_PREFIX_PATH "C:/Qt/6.9.3/msvc2022_64")
+endif()
+
 find_package(Qt6 6.4 REQUIRED COMPONENTS
     Core        # QObject, QString, QVector, QJsonDocument, etc.
     Gui         # QGuiApplication, fonts, colors
     Quick       # QML engine, Qt Quick controls
     Qml         # QQmlApplicationEngine, QQmlContext
     QuickControls2  # ApplicationWindow, Button, TextField, etc.
+    Test        # QTest unit testing framework
 )
 
 # Silence Qt 6.5+ policy warnings for this learning POC
@@ -84,3 +89,29 @@ if(WIN32)
 endif()
 
 qt_finalize_executable(ActivityTracker)
+
+# ── Unit Tests ────────────────────────────────────────────────────────────────
+enable_testing()
+
+add_executable(tst_ActivityModel
+    tests/tst_ActivityModel.cpp
+    src/model/Activity.h
+    src/model/Activity.cpp
+    src/model/ActivityListModel.h
+    src/model/ActivityListModel.cpp
+    src/service/ActivityService.h
+    src/service/ActivityService.cpp
+    src/persistence/JsonStore.h
+    src/persistence/JsonStore.cpp
+)
+
+target_include_directories(tst_ActivityModel PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(tst_ActivityModel PRIVATE
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME tst_ActivityModel COMMAND tst_ActivityModel)

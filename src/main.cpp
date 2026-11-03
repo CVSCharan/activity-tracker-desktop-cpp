@@ -2,6 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QDebug>
+#include <QUrl>
 
 #include "service/ActivityService.h"
 #include "model/ActivityListModel.h"
@@ -38,9 +40,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("activityModel", service.model());
 
     // ── Load the root QML file ────────────────────────────────────────────────
-    // "qrc:/ActivityTracker/qml/main.qml" — the qrc:/ prefix means "embedded
-    // resource". Qt's resource system bundles QML files into the executable.
-    const QUrl mainQml("qrc:/ActivityTracker/qml/main.qml");
+    // In Qt 6 with QTP0001 (default resource prefix :/qt/qml/),
+    // the module files are located at "qrc:/qt/qml/ActivityTracker/..."
+    const QUrl mainQml("qrc:/qt/qml/ActivityTracker/qml/main.qml");
 
     // If the root object fails to load, quit immediately with a non-zero exit code.
     QObject::connect(
@@ -61,3 +63,4 @@ int main(int argc, char *argv[])
     // Returns the exit code (0 = success).
     return app.exec();
 }
+

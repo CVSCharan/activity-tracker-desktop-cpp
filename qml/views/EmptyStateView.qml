@@ -27,3 +27,4 @@ Column {
         font.pixelSize: 13
     }
 }
+

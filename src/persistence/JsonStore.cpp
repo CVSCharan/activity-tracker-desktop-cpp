@@ -105,3 +105,4 @@ QVector<Activity> JsonStore::load()
     qInfo() << "JsonStore: loaded" << result.size() << "activities";
     return result;
 }
+

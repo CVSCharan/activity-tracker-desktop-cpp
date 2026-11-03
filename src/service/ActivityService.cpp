@@ -1,5 +1,7 @@
 #include "ActivityService.h"
 #include "persistence/JsonStore.h"
+#include <QDate>
+#include <QString>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constructor

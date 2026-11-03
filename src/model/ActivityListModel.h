@@ -2,6 +2,10 @@
 
 #include <QAbstractListModel>
 #include <QVector>
+#include <QHash>
+#include <QByteArray>
+#include <QVariant>
+#include <QModelIndex>
 #include "Activity.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,3 +76,4 @@ private:
     // m_ prefix convention (matches existing repo style): private member fields
     QVector<Activity> m_activities;  // QVector ≈ JS Array but typed, contiguous memory
 };
+

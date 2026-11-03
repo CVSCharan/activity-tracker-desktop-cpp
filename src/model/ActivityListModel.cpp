@@ -123,3 +123,4 @@ void ActivityListModel::resetWith(const QVector<Activity> &activities)
     endResetModel();
     Q_EMIT countChanged();
 }
+
