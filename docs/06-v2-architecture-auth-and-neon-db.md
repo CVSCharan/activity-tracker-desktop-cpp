@@ -1,7 +1,7 @@
 # 🚀 Architecture & Specification: Activity Tracker v2.0
 ## Complete Multi-Screen Application with Authentication, Neon Serverless DB, & Executive Productivity Tools
 
-This document defines the production architecture, database schema, state management, and user flows for **CVS Activity Tracker v2.0**.
+This document defines the production architecture, database schema, local seed data strategy, state management, and user flows for **CVS Activity Tracker v2.0**.
 
 ---
 
@@ -9,9 +9,9 @@ This document defines the production architecture, database schema, state manage
 1. [Executive Summary & Tech Stack](#1-executive-summary--tech-stack)
 2. [Multi-Screen Architecture & Navigation Flow](#2-multi-screen-architecture--navigation-flow)
 3. [Authentication & Session Engine](#3-authentication--session-engine)
-4. [Neon Serverless DB & Multi-User Cloud Architecture](#4-neon-serverless-db--multi-user-cloud-architecture)
+4. [Neon Serverless DB, Schema & Local Seed Data](#4-neon-serverless-db-schema--local-seed-data)
 5. [Interactive Focus Timer & Micro-Interactions](#5-interactive-focus-timer--micro-interactions)
-6. [Power Toolbar & Daily Standup Export](#6-power-toolbar--daily-standup-export)
+6. [Power Toolbar & Dual Export (Markdown & CSV)](#6-power-toolbar--dual-export-markdown--csv)
 7. [Productivity Forecast & Analytics Dashboard](#7-productivity-forecast--analytics-dashboard)
 8. [Phased Rollout Matrix](#8-phased-rollout-matrix)
 
@@ -25,7 +25,7 @@ Activity Tracker v2.0 transitions the POC from a single-screen desktop utility t
 * **Cloud Database:** Neon Serverless PostgreSQL 18 (AWS `ap-southeast-1` connection pooling endpoint with SSL).
 * **Database Driver:** `Qt6::Sql` with the native PostgreSQL driver (`QPSQL`) and `libpq`.
 * **Threading Model:** Multi-threaded asynchronous I/O (`QtConcurrent` / `QThreadPool`) — database operations run entirely on background threads to ensure the QML UI thread maintains a rock-solid 60/120 FPS.
-* **Security & Session:** Client-side PBKDF2/SHA-256 password hashing, secure token persistence via `QSettings`, and environment isolation (`.env` guarded by `.gitignore`).
+* **Security & Session:** Client-side SHA-256 password hashing with salt, secure token persistence via `QSettings` (Remember Me auto-login), and environment isolation (`.env` guarded by `.gitignore`).
 
 ---
 
@@ -40,7 +40,7 @@ stateDiagram-v2
     state CheckSession {
         [*] --> ValidatingToken
         ValidatingToken --> Unauthenticated: No session / Expired
-        ValidatingToken --> Authenticated: Valid token cached
+        ValidatingToken --> Authenticated: Valid token cached (Remember Me)
     }
 
     state "Auth Views (StackView)" as AuthStack {
@@ -59,7 +59,7 @@ stateDiagram-v2
         ProfileDrawer --> Logout: Clear session & cache
     }
 
-    LoginView --> DashboardView: Successful Auth / Demo Mode
+    LoginView --> DashboardView: Successful Auth / 1-Click Demo
     SignUpView --> DashboardView: Successful Registration
     Logout --> LoginView
 ```
@@ -67,7 +67,7 @@ stateDiagram-v2
 ### Screen Layouts:
 1. **`LoginView.qml`**: Split-pane modern desktop layout.
    * *Left Pane:* Rich branding graphic, productivity metrics preview, and feature highlights.
-   * *Right Pane:* Email & password input fields with show/hide password toggle, "Remember Me" checkbox, "Sign In" button, and "⚡ Quick Demo Mode" for 1-click evaluation without signing up.
+   * *Right Pane:* Email & password input fields with show/hide password toggle, "Remember Me" checkbox, "Sign In" button, visual error shake animation, and "⚡ Quick Demo Mode" for 1-click evaluation without signing up.
 2. **`SignUpView.qml`**:
    * Full Name, Email, Password, and visual password strength meter.
    * Workday preference selector (e.g. Daily Target: 2h, 4h, 6h, 8h).
@@ -114,12 +114,9 @@ signals:
 };
 ```
 
-### Password Security & Hashing
-Passwords are never transmitted or stored in plaintext. Passwords are hashed using `QCryptographicHash::hash(salt + password, QCryptographicHash::Sha256)` before storing in the PostgreSQL `users` table.
-
 ---
 
-## 4. Neon Serverless DB & Multi-User Cloud Architecture
+## 4. Neon Serverless DB, Schema & Local Seed Data
 
 ### Database Schema Definition
 Executed automatically on first connection to `neondb`:
@@ -146,16 +143,25 @@ CREATE TABLE IF NOT EXISTS activities (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Indices for instant query response times
 CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_activities_created_at ON activities(created_at);
 ```
 
-### Threading & Zero-Latency Desktop I/O
-To prevent cloud round-trip latency (50–150ms) from causing GUI frame drops:
-1. **Immediate Local Mutation:** When an activity is added or toggled, `ActivityListModel` updates immediately (0ms latency, UI renders at 60/120fps).
-2. **Asynchronous Background Worker:** A background task dispatched via `QtConcurrent::run` pushes the SQL query (`INSERT`, `UPDATE`, or `DELETE`) to the Neon DB connection pooler.
-3. **Offline Fallback:** If internet access drops or Neon is unreachable, changes are persisted to `%APPDATA%/activities.json` and synchronized upon reconnection.
+### Local Seed Data (Ignored in Git)
+To ensure immediate local testability without manual input:
+* **Script:** `scripts/seed_neon.sql` (Ignored in `.gitignore`).
+* **Seeded Account:**
+  * **Email:** `charan@cvs.com`
+  * **Password:** `Password123!`
+  * **Name:** `Charan Developer`
+  * **Daily Goal:** `240 min` (4 hours)
+* **Preloaded Activities:**
+  1. `Code Review for Auth Pipeline` (45m, Work, Completed ✅)
+  2. `Sprint Planning & Architecture Sync` (30m, Work, Completed ✅)
+  3. `Study Qt 6 QML Threading & DB Patterns` (60m, Learning, In Progress ⏳)
+  4. `PostgreSQL Schema Migration Testing` (30m, Learning, In Progress ⏳)
+  5. `Evening Cardio & Health Workout` (30m, Personal, In Progress ⏳)
+* **First-Boot Auto-Seed:** If the database has 0 users upon initialization, `PostgresStore` automatically provisions this seed account so fresh developer builds always start with a rich, functioning dataset.
 
 ---
 
@@ -163,7 +169,6 @@ To prevent cloud round-trip latency (50–150ms) from causing GUI frame drops:
 
 Every activity card in [`qml/components/ActivityCard.qml`](../qml/components/ActivityCard.qml) acts as an active countdown companion:
 
-### Timer State Machine:
 * **Idle State:** Shows duration pill (e.g. `⏱ 45 min`) and a `▶ Focus` button.
 * **Running State:**
   * Displays live countdown: `44:59`, `44:58`...
@@ -171,49 +176,30 @@ Every activity card in [`qml/components/ActivityCard.qml`](../qml/components/Act
   * Card exhibits a subtle ambient glow matching its category color (Electric Blue for Work, Amber Gold for Learning, Emerald Green for Personal).
 * **Paused State:** Allows pausing and resuming focus sessions.
 * **Completed State:**
-  * When time reaches `00:00`, the card plays a subtle chime, triggers a checkmark pop animation, and invokes `activityService.markComplete(index)`.
+  * When time reaches `00:00`, the card triggers a checkmark pop animation and invokes `activityService.markComplete(index)`.
 
 ---
 
-## 6. Power Toolbar & Daily Standup Export
+## 6. Power Toolbar & Dual Export (Markdown & CSV)
 
-Located directly above the activity list:
-
-### Features:
-1. **Dynamic Sort Dropdown:**
-   * 🕒 **Recent** (Newest first)
-   * ⏱️ **Duration (Shortest first / Longest first)**
-   * 🔤 **Alphabetical (A → Z)**
-2. **Batch Action (`🧹 Clear Done`):**
-   * Visible only when completed tasks exist.
-   * Removes all completed activities in one click with smooth slide-out physics.
-3. **Daily Standup Export (`📋 Export Standup`):**
-   * Compiles today's activities into formatted Markdown ready for Slack, Teams, or Jira:
-     ```markdown
-     ### 📋 Daily Standup Summary — 2026-11-04
-     **Completed Activities:**
-     - [x] Code Review (45m) — *Work*
-     - [x] Study Qt/QML (30m) — *Learning*
-
-     **In Progress / Planned:**
-     - [ ] Daily Standup (15m) — *Work*
-
-     **Total Focus Time:** 90 mins (1.5 hrs) • **Completed:** 2/3 (67%)
-     ```
-   * Automatically copies to the system clipboard and triggers a floating confirmation toast.
+* **Multi-Criteria Sorting:**
+  * 🕒 **Recent** (Newest first)
+  * ⏱️ **Duration (Shortest first / Longest first)**
+  * 🔤 **Alphabetical (A → Z)**
+* **Batch Action (`🧹 Clear Done`):**
+  * Removes all completed activities in one click with smooth slide-out physics.
+* **Dual Export Engine:**
+  1. `📋 Export Standup (Markdown)`: Formatted for Slack/Teams, copied to clipboard.
+  2. `📊 Export CSV`: Formatted for timesheets and payroll reporting.
 
 ---
 
 ## 7. Productivity Forecast & Analytics Dashboard
 
-### Dynamic Forecast Engine
-Calculates the estimated completion time based on unfinished activities:
-$$\text{Estimated Finish Time} = \text{Current Time} + \sum \text{Pending Duration Minutes}$$
-Displayed prominently in [`StatsDashboard.qml`](../qml/components/StatsDashboard.qml):
-> *"3 tasks pending (75m remaining) • Estimated completion: 5:45 PM"*
-
-### Focus Streak Tracker
-Maintains consecutive days where at least 1 activity was completed (e.g., *"🔥 3-Day Focus Streak"*).
+* **Dynamic Forecast Engine:** Calculates estimated completion time:
+  $$\text{Finish Time} = \text{Current Time} + \sum \text{Pending Duration Minutes}$$
+  E.g.: *"3 tasks pending (75m remaining) • Estimated completion: 5:45 PM"*.
+* **Focus Streak Tracker:** Maintains consecutive days where at least 1 activity was completed (e.g., *"🔥 3-Day Focus Streak"*).
 
 ---
 
@@ -223,6 +209,6 @@ Maintains consecutive days where at least 1 activity was completed (e.g., *"🔥
 |---|---|---|
 | **Milestone 1: Auth Engine & Views** | `AuthService.h/.cpp`, `LoginView.qml`, `SignUpView.qml`, `ForgotPasswordView.qml`, `main.qml` StackView navigation. | `src/service/AuthService.*`, `qml/views/auth/*` |
 | **Milestone 2: Focus Timer & Glows** | Card countdown timer, progress ring, category hover glows, checkmark pop animation. | `qml/components/ActivityCard.qml` |
-| **Milestone 3: Power Toolbar & Export**| Sorting selector, `Clear Done` batch action, Markdown Standup export to clipboard. | `qml/main.qml`, `src/service/ActivityService.*` |
-| **Milestone 4: Neon DB Multi-User Sync** | `Qt6::Sql` linkage, `PostgresStore.h/.cpp`, schema migration, multi-user isolation. | `CMakeLists.txt`, `src/persistence/PostgresStore.*` |
-| **Milestone 5: Analytics & Settings** | `AnalyticsView.qml`, `ProfileDrawer.qml`, daily target gauge, streak tracking. | `qml/views/AnalyticsView.qml`, `qml/components/ProfileDrawer.qml` |
+| **Milestone 3: Power Toolbar & Export**| Sorting selector, `Clear Done` batch action, Markdown & CSV export. | `qml/main.qml`, `src/service/ActivityService.*` |
+| **Milestone 4: Neon DB Multi-User Sync** | `Qt6::Sql` linkage, `PostgresStore.h/.cpp`, schema migration, multi-user isolation, auto-seed. | `CMakeLists.txt`, `src/persistence/PostgresStore.*` |
+| **Milestone 5: Analytics & Profile Drawer** | `AnalyticsView.qml`, `ProfileDrawer.qml`, daily target gauge, streak tracking. | `qml/views/AnalyticsView.qml`, `qml/components/ProfileDrawer.qml` |
