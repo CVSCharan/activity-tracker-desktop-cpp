@@ -33,7 +33,7 @@ jobs:
           version: '6.8.0'
           host: ${{ matrix.os == 'windows-latest' && 'windows' || 'mac' }}
           target: 'desktop'
-          arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022' || 'clang_64' }}
+          arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022_64' || 'clang_64' }}
           setup-python: false
           cache: true
 
