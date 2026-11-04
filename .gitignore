@@ -30,3 +30,8 @@ Thumbs.db
 # IDE
 .idea/
 
+# Environment and secrets
+.env
+.env.*
+.neon/
+

@@ -1,6 +1,6 @@
 # 📚 CVS Activity Tracker — Engineering Documentation
 
-Welcome to the technical documentation for **CVS Activity Tracker**, built with C++17, Qt 6, and QML.
+Welcome to the technical documentation for **CVS Activity Tracker**, built with C++17, Qt 6, QML, and Neon Serverless PostgreSQL.
 
 ## 📑 Documentation Index
 
@@ -27,9 +27,18 @@ Welcome to the technical documentation for **CVS Activity Tracker**, built with 
    - Resource prefixes and `QTP0001`
    - Windows Subsystems (GUI vs Console)
    - IntelliSense and `compile_commands.json`
-   - QML delegate role resolution in Qt 6
+   - QML delegate required property role resolution in Qt 6 (`(Untitled Activity)` fix)
+   - Multi-Platform CI/CD workflow engineering (Python 3.15 alpha override, MSVC `win64_msvc2022_64`, macOS Carbon `AGL` linker workaround, CTest DLL path injection)
+   - Material Design mobile floating label overlay resolution on desktop containers
 
 5. [**05-industry-best-practices-roadmap.md**](05-industry-best-practices-roadmap.md)
    - Commercial desktop standards matrix
    - Day-by-day implementation roadmap (Branding, Splash Screen, Window State, Filter Proxy, System Tray, CSV Export, Logging)
 
+6. [**06-v2-architecture-auth-and-neon-db.md**](06-v2-architecture-auth-and-neon-db.md)
+   - Complete multi-screen architecture with `StackView`
+   - Authentication engine (`LoginView`, `SignUpView`, `ForgotPasswordView`, `AuthService`, SHA-256 hashing, session tokens, Quick Demo mode)
+   - Neon Serverless PostgreSQL cloud integration (`users` and `activities` multi-user schema, async background worker thread, hybrid offline JSON fallback)
+   - Interactive Live Focus Timer (Pomodoro countdown, progress ring, category glow, completion celebration)
+   - Productivity Power Toolbar (Multi-criteria sorting, `🧹 Clear Done`, `📋 Export Daily Standup Summary` to clipboard)
+   - Analytics & Productivity Forecast ("Finish by 5:45 PM" dynamic engine, Focus Streak tracking)

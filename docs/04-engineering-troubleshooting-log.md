@@ -144,3 +144,74 @@ UnresolvedType=disable
 UnresolvedAttachedProperty=disable
 ```
 - **Why keeping `.qmllint.ini` in Git is standard practice:** Just as frontend teams commit `.eslintrc.json` or `.prettierrc` so that every developer and CI pipeline runs with consistent code-quality rules, committing `.qmllint.ini` standardizes Qt linter behavior across all workstations and automated CI test runners.
+
+
+---
+
+## Issue 6: Qt 6 Delegate Required Properties Role Mapping (`(Untitled Activity)` & `0 min`)
+
+### 🔴 Symptom
+When adding activities or clicking quick-start templates, the cards rendered with `(Untitled Activity)`, `General`, and `0 min` instead of their actual name, category, and duration.
+
+### 🔍 Root Cause Analysis
+In Qt 6, when a custom delegate declares `required property`, Qt's QML engine alters data binding:
+1. **Automated Role Matching:** Qt 6 searches the C++ model for roles with the exact same identifier as the required property.
+2. If `ActivityCard.qml` declares `required property string activityName`, Qt 6 searches for a model role named `"activityName"`. Because the C++ `ActivityListModel::roleNames()` provides `"name"`, `"category"`, and `"durationMinutes"`, Qt 6 finds no match and initializes the required property to default values (`""`, `0`).
+3. Furthermore, declaring `required property` disables legacy context object injection (`model.name`), rendering manual assignments inside the delegate null or unreactive.
+
+### 🟢 Resolution & Best Practice
+Aligned delegate property names to match C++ role names exactly:
+```qml
+// ActivityCard.qml
+required property string name
+required property string category
+required property int    durationMinutes
+required property bool   done
+required property int    index
+```
+In `ActivityListView.qml`, Qt 6 directly and automatically populates these properties with zero boilerplate and full compile-time type safety.
+
+---
+
+## Issue 7: Multi-Platform CI/CD Workflow Failures (Windows & macOS)
+
+### 🔴 Symptoms
+The GitHub Actions workflow failed on both Windows and macOS runners:
+1. **Windows:** `Error: The process 'C:\hostedtoolcache\windows\Python\3.15.2\x64\python.exe' failed with exit code 1`.
+2. **Windows:** `ERROR: The packages ['qt_base'] were not found while parsing XML of package information!`.
+3. **Windows:** `Generator Visual Studio 17 2022 could not find any instance of Visual Studio`.
+4. **macOS:** `ld: framework 'AGL' not found` during linking `ActivityTracker.app`.
+5. **CTest (Windows):** `Exit code 0xc0000135` (`STATUS_DLL_NOT_FOUND`).
+
+### 🔍 Root Cause Analysis & Resolutions
+
+1. **Python Toolcache Alpha Version:**
+   * *Root Cause:* GitHub's runner image populated Python 3.15.2 alpha in `hostedtoolcache`. `jurplel/install-qt-action` defaulted to `setup-python: true`, discovering and crashing on Python 3.15 alpha.
+   * *Fix:* Added `actions/setup-python@v5` with `python-version: '3.12'` and set `setup-python: false` in `install-qt-action`.
+2. **Qt 6 Architecture Identifier Mismatch:**
+   * *Root Cause:* In Qt 6 on Windows, the 64-bit MSVC package in `aqtinstall` is officially named `win64_msvc2022_64` (not `win64_msvc2022`).
+   * *Fix:* Updated `arch: win64_msvc2022_64`.
+3. **`windows-latest` Runner Version Drift:**
+   * *Root Cause:* `windows-latest` migrated to preview `windows-2025` with Visual Studio 18/2026, where CMake could not locate Visual Studio 17 2022.
+   * *Fix:* Pinned the runner explicitly to `windows-2022`.
+4. **Obsolete Apple Carbon `AGL` Linker Dependency:**
+   * *Root Cause:* Modern macOS (macOS 14/15/26 Apple Silicon) removed the deprecated Carbon `AGL.framework`. Qt 6.8's `FindWrapOpenGL.cmake` unconditionally linked `-framework AGL`.
+   * *Fix:* In root `CMakeLists.txt`, pre-empted the finder by declaring `WrapOpenGL::WrapOpenGL` target with `-framework OpenGL` when `APPLE` is true.
+5. **CTest Missing Qt DLLs on Windows (`0xc0000135`):**
+   * *Root Cause:* The test executable `tst_ActivityModel.exe` was executed without Qt's `bin` directory in system `PATH`.
+   * *Fix:* Added `set_tests_properties(tst_ActivityModel PROPERTIES ENVIRONMENT "PATH=$<TARGET_FILE_DIR:Qt6::Core>;$ENV{PATH}")` in `CMakeLists.txt`.
+
+---
+
+## Issue 8: Material Design Floating Placeholder Overlay Glitch
+
+### 🔴 Symptom
+In `TextField`, when focused or after typing, placeholder text did not disappear cleanly; it floated or remained overlayed on top of the user's typed text.
+
+### 🔍 Root Cause Analysis
+`QQuickStyle::setStyle("Material")` activates Material Design's mobile floating label animation. When a custom `background: Rectangle` with fixed container height and padding is used, the floating label cannot translate outside the container boundaries, causing it to render directly over the input text baseline.
+
+### 🟢 Resolution & Modern Desktop Desktop Input Architecture
+1. Set `placeholderText: ""` on the `TextField` to disable Material's internal floating label.
+2. Embedded a custom smooth `Text` placeholder inside the container that softly dims on focus (`opacity: 0.35`) and instantly transitions to `0` opacity the moment any character is typed.
+3. Added a dynamic Electric Blue focus halo, clear button (`✕`), and keyboard shortcut badge (`↵`).
