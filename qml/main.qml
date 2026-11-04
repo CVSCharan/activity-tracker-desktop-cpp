@@ -174,7 +174,7 @@ ApplicationWindow {
 
             // Left Sidebar: Form
             Rectangle {
-                Layout.preferredWidth: 320
+                Layout.preferredWidth: root.width > 960 ? 320 : 280
                 Layout.fillHeight: true
                 color: Theme.surfaceSidebar
                 border.color: Theme.borderDefault

@@ -1,17 +1,24 @@
-// StatsDashboard.qml — executive KPI metrics cards with live progress bars
+// StatsDashboard.qml — executive KPI metrics cards with responsive grid reflow
 import QtQuick
 import QtQuick.Layouts
 import ActivityTracker 1.0
 
-RowLayout {
-    id: statsRow
-    spacing: 12
+GridLayout {
+    id: statsGrid
+
+    // ── Responsive Breakpoints ────────────────────────────────────────────────
+    // Wide display (>800px): 4 cards in 1 row
+    // Half-screen snap / Tablet (440px-800px): 2 rows x 2 columns
+    // Compact (<440px): 1 column x 4 rows
+    columns: width > 800 ? 4 : (width > 440 ? 2 : 1)
+    rowSpacing: 10
+    columnSpacing: 10
 
     // ── Reusable Stat Card Component ──────────────────────────────────────────
     component StatCard: Rectangle {
         id: cardRoot
         Layout.fillWidth: true
-        Layout.preferredHeight: 90
+        Layout.preferredHeight: 88
         radius: 10
         color: cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard
         border.color: cardHover.hovered ? accentColor : Theme.borderDefault
@@ -108,7 +115,7 @@ RowLayout {
 
                 // Micro Progress Bar
                 Rectangle {
-                    Layout.preferredWidth: 64
+                    Layout.preferredWidth: 60
                     Layout.preferredHeight: 4
                     radius: 2
                     color: Theme.surfaceBadge

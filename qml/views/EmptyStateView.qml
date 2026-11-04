@@ -1,10 +1,11 @@
-// EmptyStateView.qml — engaging empty state with 1-click quick starter templates
+// EmptyStateView.qml — engaging empty state with responsive quick starter templates
 import QtQuick
 import ActivityTracker 1.0
 
 Column {
     id: emptyRoot
     spacing: 20
+    width: Math.min(parent.width - 40, 720)
 
     // Visual Icon Box
     Rectangle {
@@ -27,6 +28,7 @@ Column {
     Column {
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 6
+        width: parent.width
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -41,17 +43,22 @@ Column {
             text: "Add an activity using the form on the left, or click a quick-start template below:"
             color: Theme.textSecondary
             font.pixelSize: 13
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
         }
     }
 
-    // ── 1-Click Quick Starter Templates ───────────────────────────────────────
-    Row {
+    // ── Responsive 1-Click Quick Starter Templates ────────────────────────────
+    // Reflows: 4 in 1 row (>660px), 2x2 grid (340-660px), 1 column (<340px)
+    Grid {
+        id: templateGrid
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 12
+        columns: emptyRoot.width > 660 ? 4 : (emptyRoot.width > 340 ? 2 : 1)
+        spacing: 10
 
         component TemplateCard: Rectangle {
             id: tmplRoot
-            width: 154
+            width: emptyRoot.width > 660 ? 154 : (emptyRoot.width > 340 ? (emptyRoot.width - 10) / 2 : emptyRoot.width)
             height: 76
             radius: 8
             color: tmplHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard

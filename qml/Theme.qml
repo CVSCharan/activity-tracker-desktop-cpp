@@ -55,3 +55,4 @@ QtObject {
     readonly property color accentRedBg:      isDark ? "#38171B" : "#FEF2F2"
     readonly property color accentRedBorder:  isDark ? "#DA3633" : "#FCA5A5"
 }
+
