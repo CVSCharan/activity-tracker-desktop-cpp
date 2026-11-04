@@ -54,10 +54,13 @@ qt_policy(SET QTP0004 NEW)
 # ── Source Files ──────────────────────────────────────────────────────────────
 set(SOURCES
     src/main.cpp
+    src/model/User.h
     src/model/Activity.h
     src/model/Activity.cpp
     src/model/ActivityListModel.h
     src/model/ActivityListModel.cpp
+    src/service/AuthService.h
+    src/service/AuthService.cpp
     src/service/ActivityService.h
     src/service/ActivityService.cpp
     src/persistence/JsonStore.h
@@ -68,8 +71,13 @@ set(SOURCES
 set(QML_FILES
     qml/Theme.qml
     qml/main.qml
+    qml/views/auth/LoginView.qml
+    qml/views/auth/SignUpView.qml
+    qml/views/auth/ForgotPasswordView.qml
     qml/views/ActivityListView.qml
+    qml/views/AnalyticsView.qml
     qml/views/EmptyStateView.qml
+    qml/components/LucideIcon.qml
     qml/components/ActivityCard.qml
     qml/components/AddActivityForm.qml
     qml/components/SummaryBar.qml
@@ -90,7 +98,35 @@ qt_add_qml_module(ActivityTracker
     URI ActivityTracker          # import ActivityTracker 1.0 in QML
     VERSION 1.0
     QML_FILES ${QML_FILES}
-    RESOURCES resources/icons/app_icon.svg
+    RESOURCES
+        resources/icons/app_icon.svg
+        resources/icons/arrow-up-down.svg
+        resources/icons/bar-chart-2.svg
+        resources/icons/book-open.svg
+        resources/icons/briefcase.svg
+        resources/icons/check.svg
+        resources/icons/clock.svg
+        resources/icons/cloud.svg
+        resources/icons/copy.svg
+        resources/icons/flame.svg
+        resources/icons/grip-vertical.svg
+        resources/icons/list-todo.svg
+        resources/icons/log-out.svg
+        resources/icons/moon.svg
+        resources/icons/panel-left.svg
+        resources/icons/panel-right.svg
+        resources/icons/pause.svg
+        resources/icons/play.svg
+        resources/icons/plus.svg
+        resources/icons/rotate-ccw.svg
+        resources/icons/search.svg
+        resources/icons/sparkles.svg
+        resources/icons/sun.svg
+        resources/icons/target.svg
+        resources/icons/trash-2.svg
+        resources/icons/user.svg
+        resources/icons/x.svg
+        resources/icons/zap.svg
 )
 
 # ── Link Qt Libraries ─────────────────────────────────────────────────────────

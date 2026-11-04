@@ -8,6 +8,7 @@
 #include <QUrl>
 
 #include "service/ActivityService.h"
+#include "service/AuthService.h"
 
 int main(int argc, char *argv[])
 {
@@ -25,16 +26,16 @@ int main(int argc, char *argv[])
     // Must be called BEFORE QQmlApplicationEngine is created.
     QQuickStyle::setStyle("Material");
 
-    // ── Business logic / service ──────────────────────────────────────────────
+    // ── Business logic / services ─────────────────────────────────────────────
     // Stack-allocated: destroyed automatically when main() returns (RAII).
-    // ActivityService owns ActivityListModel (via Qt parent-child ownership).
+    AuthService authService;
     ActivityService service;
 
     // ── QML engine ────────────────────────────────────────────────────────────
     QQmlApplicationEngine engine;
 
     // Expose C++ objects to QML as named globals.
-    // After this, every QML file can write: activityService.addActivity(...)
+    engine.rootContext()->setContextProperty("authService", &authService);
     engine.rootContext()->setContextProperty("activityService", &service);
     engine.rootContext()->setContextProperty("activityModel", service.model());
 

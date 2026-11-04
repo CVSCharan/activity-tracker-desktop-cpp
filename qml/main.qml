@@ -1,4 +1,4 @@
-// main.qml — Root application window with dual light/dark theme and executive UI
+// main.qml — Root application window with dual light/dark theme, executive auth flow & workstation
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
@@ -6,15 +6,16 @@ import QtQuick.Layouts
 import ActivityTracker 1.0
 
 import "./views"       as Views
+import "./views/auth"  as AuthViews
 import "./components"  as Components
 
 ApplicationWindow {
     id: root
     visible: true
-    width: 1020
-    height: 720
-    minimumWidth: 840
-    minimumHeight: 560
+    width: 1060
+    height: 740
+    minimumWidth: 860
+    minimumHeight: 580
     title: "CVS Activity Tracker"
 
     // ── Dynamic Material Style Configuration ─────────────────────────────────
@@ -25,18 +26,27 @@ ApplicationWindow {
 
     Behavior on color { ColorAnimation { duration: 200 } }
 
-    // ── Global Filter State ──────────────────────────────────────────────────
+    // ── Global Filter & Auth State ───────────────────────────────────────────
     property string activeCategoryFilter: "All"
     property string activeSearchQuery: ""
+    property string activeAuthScreen: "login" // "login", "signup", "forgot"
 
     // ── Global Shortcuts ─────────────────────────────────────────────────────
     Shortcut {
         sequence: "Ctrl+F"
-        onActivated: searchInput.forceActiveFocus()
+        onActivated: {
+            if (authService.isLoggedIn && searchInput) searchInput.forceActiveFocus()
+        }
     }
     Shortcut {
         sequence: "Ctrl+T"
         onActivated: Theme.toggleTheme()
+    }
+    Shortcut {
+        sequence: "Ctrl+L"
+        onActivated: {
+            if (authService.isLoggedIn) authService.logout()
+        }
     }
 
     // ── Error notification banner ─────────────────────────────────────────────
@@ -49,10 +59,42 @@ ApplicationWindow {
         }
     }
 
-    // ── Main Window Layout ────────────────────────────────────────────────────
+    // =========================================================================
+    // 1. AUTHENTICATION SCREENS (Shown when !authService.isLoggedIn)
+    // =========================================================================
+    Item {
+        id: authContainer
+        anchors.fill: parent
+        visible: !authService.isLoggedIn
+
+        AuthViews.LoginView {
+            anchors.fill: parent
+            visible: root.activeAuthScreen === "login"
+            onNavigateToSignUp: root.activeAuthScreen = "signup"
+            onNavigateToForgotPassword: root.activeAuthScreen = "forgot"
+        }
+
+        AuthViews.SignUpView {
+            anchors.fill: parent
+            visible: root.activeAuthScreen === "signup"
+            onNavigateToLogin: root.activeAuthScreen = "login"
+        }
+
+        AuthViews.ForgotPasswordView {
+            anchors.fill: parent
+            visible: root.activeAuthScreen === "forgot"
+            onNavigateToLogin: root.activeAuthScreen = "login"
+        }
+    }
+
+    // =========================================================================
+    // 2. MAIN TRACKER WORKSTATION (Shown when authService.isLoggedIn)
+    // =========================================================================
     ColumnLayout {
+        id: workstationContainer
         anchors.fill: parent
         spacing: 0
+        visible: authService.isLoggedIn
 
         // ── Top Navigation / Header Bar ───────────────────────────────────────
         Rectangle {
@@ -75,29 +117,41 @@ ApplicationWindow {
                 // Brand Logo & Title
                 RowLayout {
                     spacing: 12
-                    Image {
-                        source: "qrc:/qt/qml/ActivityTracker/resources/icons/app_icon.svg"
-                        sourceSize.width: 34
-                        sourceSize.height: 34
-                        Layout.preferredWidth: 34
-                        Layout.preferredHeight: 34
-                        smooth: true
-                        mipmap: true
+                    Rectangle {
+                        Layout.preferredWidth: 36
+                        Layout.preferredHeight: 36
+                        radius: 10
+                        color: Theme.accentBlue
+                        Text {
+                            anchors.centerIn: parent
+                            text: "⏱️"
+                            font.pixelSize: 18
+                        }
                     }
                     ColumnLayout {
                         spacing: 1
                         Text {
                             text: "CVS Activity Tracker"
-                            font.pixelSize: 16
+                            font.pixelSize: 15
                             font.bold: true
                             color: Theme.textPrimary
                         }
-                        Text {
-                            text: "Enterprise Productivity Desk"
-                            font.pixelSize: 10
-                            font.bold: true
-                            color: Theme.accentBlue
-                            font.letterSpacing: 0.5
+                        RowLayout {
+                            spacing: 6
+                            Text {
+                                text: "Enterprise Workstation"
+                                font.pixelSize: 10
+                                font.bold: true
+                                color: Theme.accentBlue
+                                font.letterSpacing: 0.5
+                            }
+                            Text { text: "•"; color: Theme.textMuted; font.pixelSize: 10 }
+                            Text {
+                                text: "☁️ Neon PostgreSQL Connected"
+                                font.pixelSize: 10
+                                font.bold: true
+                                color: Theme.accentGreen
+                            }
                         }
                     }
                 }
@@ -131,6 +185,29 @@ ApplicationWindow {
                     }
                 }
 
+                // User Profile Chip
+                Rectangle {
+                    radius: 14
+                    color: Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+                    implicitWidth: userRow.implicitWidth + 20
+                    implicitHeight: 28
+
+                    RowLayout {
+                        id: userRow
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text { text: "👤"; font.pixelSize: 11 }
+                        Text {
+                            text: authService.currentUserName.length > 0 ? authService.currentUserName : "User"
+                            color: Theme.textPrimary
+                            font.bold: true
+                            font.pixelSize: 12
+                        }
+                    }
+                }
+
                 // ── Theme Switcher Button (Dark 🌙 / Light ☀️) ─────────────────
                 Rectangle {
                     id: themeToggleBtn
@@ -138,7 +215,7 @@ ApplicationWindow {
                     color: themeHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
-                    implicitWidth: 86
+                    implicitWidth: 84
                     implicitHeight: 28
 
                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -148,11 +225,11 @@ ApplicationWindow {
                         spacing: 6
                         Text {
                             text: Theme.isDark ? "🌙" : "☀️"
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                         }
                         Text {
                             text: Theme.isDark ? "Dark" : "Light"
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                             font.bold: true
                             color: Theme.textPrimary
                         }
@@ -161,6 +238,34 @@ ApplicationWindow {
                     HoverHandler { id: themeHover }
                     TapHandler {
                         onTapped: Theme.toggleTheme()
+                    }
+                }
+
+                // Sign Out Button
+                Rectangle {
+                    id: logoutBtn
+                    radius: 14
+                    color: logoutHover.hovered ? Theme.accentRedBg : Theme.surfaceBadge
+                    border.color: logoutHover.hovered ? Theme.accentRedBorder : Theme.borderDefault
+                    border.width: 1
+                    implicitWidth: 32
+                    implicitHeight: 28
+
+                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "🚪"
+                        font.pixelSize: 12
+                    }
+
+                    ToolTip.visible: logoutHover.hovered
+                    ToolTip.text: "Sign Out (Ctrl+L)"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: logoutHover }
+                    TapHandler {
+                        onTapped: authService.logout()
                     }
                 }
             }
@@ -253,7 +358,7 @@ ApplicationWindow {
 
                         Item { Layout.fillWidth: true }
 
-                        // Live Instant Search Box
+                        // Live Instant Search Box (Zero-Overlay Desktop Input)
                         Rectangle {
                             implicitWidth: 220
                             implicitHeight: 32
@@ -338,12 +443,14 @@ ApplicationWindow {
                         Layout.fillHeight: true
 
                         Views.ActivityListView {
+                            id: mainListView
                             anchors.fill: parent
                             filterCategory: root.activeCategoryFilter
                             filterText: root.activeSearchQuery
                             visible: activityModel.count > 0
                         }
 
+                        // Empty State View
                         Views.EmptyStateView {
                             anchors.centerIn: parent
                             visible: activityModel.count === 0

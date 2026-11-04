@@ -33,6 +33,7 @@ Thumbs.db
 # Environment and secrets
 .env
 .env.*
+!.env.example
 .neon/
 *.seed.sql
 *.seed.js
@@ -41,3 +42,7 @@ seed.js
 scripts/seed*.sql
 scripts/seed*.js
 scripts/
+
+# Agent / Workspace Tooling
+.agents/
+skills-lock.json
