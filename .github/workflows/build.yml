@@ -1,4 +1,4 @@
-name: Multi-Platform CI Build (Windows & macOS)
+name: Multi-Platform CI Build (Windows, Apple Silicon & Intel macOS)
 
 on:
   push:
@@ -9,14 +9,48 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }} - ${{ matrix.build_type }}
+    name: ${{ matrix.name }} - ${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2022, macos-latest]
-        build_type: [Debug, Release]
+        include:
+          # Windows MSVC 2022 (x64)
+          - os: windows-2022
+            name: Windows x64
+            platform: windows
+            arch: win64_msvc2022_64
+            build_type: Debug
+          - os: windows-2022
+            name: Windows x64
+            platform: windows
+            arch: win64_msvc2022_64
+            build_type: Release
+
+          # macOS Apple Silicon (ARM64 - M-series)
+          - os: macos-latest
+            name: macOS Apple Silicon (ARM64)
+            platform: macos-arm64
+            arch: clang_64
+            build_type: Debug
+          - os: macos-latest
+            name: macOS Apple Silicon (ARM64)
+            platform: macos-arm64
+            arch: clang_64
+            build_type: Release
+
+          # macOS Intel (x86_64)
+          - os: macos-13
+            name: macOS Intel (x86_64)
+            platform: macos-intel
+            arch: clang_64
+            build_type: Debug
+          - os: macos-13
+            name: macOS Intel (x86_64)
+            platform: macos-intel
+            arch: clang_64
+            build_type: Release
 
     steps:
       - name: Checkout Repository
@@ -33,7 +67,7 @@ jobs:
           version: '6.8.0'
           host: ${{ runner.os == 'Windows' && 'windows' || 'mac' }}
           target: 'desktop'
-          arch: ${{ runner.os == 'Windows' && 'win64_msvc2022_64' || 'clang_64' }}
+          arch: ${{ matrix.arch }}
           setup-python: false
           cache: true
 
@@ -59,7 +93,7 @@ jobs:
           windeployqt --qmldir qml build/Release/ActivityTracker.exe
           Compress-Archive -Path build/Release/* -DestinationPath ActivityTracker-Windows-Release.zip
 
-      # ── Build on macOS ───────────────────────────────────────────────────────
+      # ── Build on macOS (Apple Silicon & Intel) ────────────────────────────────
       - name: Configure CMake (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -83,15 +117,22 @@ jobs:
 
       # ── Upload Artifacts ─────────────────────────────────────────────────────
       - name: Upload Windows Release Artifact
-        if: runner.os == 'Windows' && matrix.build_type == 'Release'
+        if: matrix.platform == 'windows' && matrix.build_type == 'Release'
         uses: actions/upload-artifact@v4
         with:
           name: ActivityTracker-Windows-Release
           path: ActivityTracker-Windows-Release.zip
 
-      - name: Upload macOS Release Artifact
-        if: runner.os == 'macOS' && matrix.build_type == 'Release'
+      - name: Upload macOS Apple Silicon Release Artifact
+        if: matrix.platform == 'macos-arm64' && matrix.build_type == 'Release'
         uses: actions/upload-artifact@v4
         with:
-          name: ActivityTracker-macOS-Release
+          name: ActivityTracker-macOS-AppleSilicon-Release
+          path: ActivityTracker-macOS-Release.zip
+
+      - name: Upload macOS Intel Release Artifact
+        if: matrix.platform == 'macos-intel' && matrix.build_type == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ActivityTracker-macOS-Intel-Release
           path: ActivityTracker-macOS-Release.zip

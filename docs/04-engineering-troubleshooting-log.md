@@ -215,3 +215,53 @@ In `TextField`, when focused or after typing, placeholder text did not disappear
 1. Set `placeholderText: ""` on the `TextField` to disable Material's internal floating label.
 2. Embedded a custom smooth `Text` placeholder inside the container that softly dims on focus (`opacity: 0.35`) and instantly transitions to `0` opacity the moment any character is typed.
 3. Added a dynamic Electric Blue focus halo, clear button (`✕`), and keyboard shortcut badge (`↵`).
+
+---
+
+## Issue 9: Cross-Platform Release Bundle Disparity — macOS (~133 MB) vs Windows (~34 MB)
+
+### 🔴 Observation
+The automated GitHub Actions release packaging produced artifacts of vastly different sizes:
+* **Windows (`ActivityTracker-Windows-Release.zip`):** ~34.2 MB
+* **macOS (`ActivityTracker-macOS-Release.zip`):** ~133.2 MB
+
+Why is the macOS bundle nearly 4× larger than the Windows release for the exact same codebase?
+
+### 🔍 Root Cause Analysis
+
+1. **Universal 2 Dual-Architecture Mach-O Binaries (The #1 Factor):**
+   * Modern Qt 6 builds for macOS (`clang_64` on GitHub Actions `macos-latest`) compile as **Universal Binaries (fat binaries)** containing two complete, independent machine code slices:
+     * `arm64`: For Apple Silicon (M1, M2, M3, M4).
+     * `x86_64`: For Intel-based Macs.
+   * Every Qt framework dylib inside `ActivityTracker.app/Contents/Frameworks/` (`QtCore`, `QtGui`, `QtQuick`, `QtQml`, etc.) holds dual architecture slices, which immediately doubles the compiled binary size.
+   * In contrast, the Windows build targets exclusively a single architecture (`win64_msvc2022_64`), needing only half the compiled bytes.
+
+2. **Apple Framework Directory Structure vs Flat Windows DLLs:**
+   * **Windows (`windeployqt`):** Extracts only flat, stripped `.dll` files (`Qt6Core.dll`, `Qt6Gui.dll`, etc.) directly into the application folder without wrapper directories.
+   * **macOS (`macdeployqt`):** Assembles complete Apple `.framework` bundle directory hierarchies (`QtCore.framework/Versions/A/QtCore`, embedded `Info.plist` manifests, symlinks, localized string tables, and CodeResources signatures for Gatekeeper notarization).
+
+3. **Debug Symbol Tables & Dynamic Relocation Overhead:**
+   * **Windows (MSVC):** Release builds separate debug symbols into external `.pdb` files, which are excluded from the final release archive. The deployed DLLs contain no non-essential symbol tables.
+   * **macOS:** Mach-O binaries retain dynamic symbol tables (`LC_SYMTAB`, `LC_DYSYMTAB`) required for Apple runtime dynamic linking, address space layout randomization (ASLR), and crash report stack unwinding.
+
+4. **Self-Contained Sandboxed QML Runtime:**
+   * `macdeployqt ... -qmldir=qml` bundles every Qt Quick plugin as an independent standalone bundle inside `ActivityTracker.app/Contents/PlugIns/` and links all secondary framework dependencies to ensure the `.app` executes on clean Macs without requiring a local Qt installation.
+
+### 📊 Architecture Comparison Matrix
+
+| Dimension | Windows Release (`windeployqt`) | macOS Release (`macdeployqt`) |
+| :--- | :--- | :--- |
+| **Target Architectures** | Single: `x86_64` | **Dual: `arm64` + `x86_64` (Universal 2)** |
+| **Binary Format** | Windows PE (`.exe` + `.dll`) | Mach-O Fat Binary (`.framework` / `.dylib`) |
+| **Metadata Overhead** | Minimal (flat folder) | High (Apple `.bundle`, `Info.plist`, signatures) |
+| **Symbol Retention** | Zero (stripped; `.pdb` omitted) | Runtime symbol & relocation tables retained |
+| **Compressed Archive** | **~34.2 MB** | **~133.2 MB** |
+
+### 🟢 Production Optimization Strategies
+If reducing the macOS archive footprint is desired in future releases:
+1. **Thinning via `lipo`:** If targeting Apple Silicon exclusively, strip the Intel slice to reduce bundle size by ~45%:
+   ```bash
+   lipo -thin arm64 ActivityTracker.app/Contents/MacOS/ActivityTracker -output ActivityTracker.app/Contents/MacOS/ActivityTracker
+   ```
+2. **Mach-O Symbol Stripping:** Run `strip -S` on deployed frameworks to remove non-global symbol tables prior to notarization.
+3. **Industry Standard Context:** 100–150 MB is the standard baseline for self-contained, notarizable Qt 6 desktop apps on macOS (e.g. Telegram Desktop, OBS Studio, Wireshark).
