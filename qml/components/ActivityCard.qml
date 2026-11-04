@@ -1,9 +1,9 @@
-// ActivityCard.qml — high-contrast modern activity card
-
+// ActivityCard.qml — high-contrast modern activity card with light/dark theme support
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import ActivityTracker 1.0
 
 Rectangle {
     id: card
@@ -19,8 +19,13 @@ Rectangle {
 
     height: 76
     radius: 8
-    color: card.activityDone ? "#111B15" : (cardHover.hovered ? "#1C2128" : "#161B22")
-    border.color: card.activityDone ? "#238636" : (cardHover.hovered ? "#58A6FF" : "#30363D")
+    color: card.activityDone 
+           ? (Theme.isDark ? "#0E1C14" : "#F0FDF4")
+           : (cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard)
+
+    border.color: card.activityDone 
+                  ? Theme.accentGreenBorder
+                  : (cardHover.hovered ? Theme.accentBlue : Theme.borderDefault)
     border.width: 1
 
     Behavior on color { ColorAnimation { duration: 150 } }
@@ -31,18 +36,18 @@ Rectangle {
     // Left accent category strip
     Rectangle {
         id: accentStrip
-        width: 5
-        height: card.height - 16
-        radius: 3
+        width: 4
+        height: card.height - 18
+        radius: 2
         anchors.left: card.left
         anchors.leftMargin: 6
         anchors.verticalCenter: card.verticalCenter
         color: {
             switch (card.activityCategory) {
-            case "Work":     return "#58A6FF"  // Blue
-            case "Learning": return "#D29922"  // Amber
-            case "Personal": return "#3FB950"  // Green
-            default:         return "#8B949E"
+            case "Work":     return Theme.accentBlue
+            case "Learning": return Theme.accentAmber
+            case "Personal": return Theme.accentGreen
+            default:         return Theme.textSecondary
             }
         }
     }
@@ -50,7 +55,7 @@ Rectangle {
     RowLayout {
         anchors {
             fill: parent
-            leftMargin: 20
+            leftMargin: 18
             rightMargin: 16
             topMargin: 8
             bottomMargin: 8
@@ -62,7 +67,7 @@ Rectangle {
             id: doneBox
             checked: card.activityDone
             enabled: !card.activityDone
-            Material.accent: "#3FB950"
+            Material.accent: Theme.accentGreen
             onCheckedChanged: {
                 if (checked && !card.activityDone) {
                     card.completeRequested()
@@ -75,12 +80,12 @@ Rectangle {
             Layout.fillWidth: true
             spacing: 6
 
-            // Activity Name (Bright white text, high contrast)
+            // Activity Name
             Text {
                 Layout.fillWidth: true
                 text: card.activityName.length > 0 ? card.activityName : "(Untitled Activity)"
-                color: card.activityDone ? "#6E7681" : "#F0F6FC"
-                font.pixelSize: 15
+                color: card.activityDone ? Theme.textMuted : Theme.textPrimary
+                font.pixelSize: 14
                 font.bold: true
                 elide: Text.ElideRight
                 font.strikeout: card.activityDone
@@ -97,18 +102,18 @@ Rectangle {
                     implicitHeight: 20
                     color: {
                         switch (card.activityCategory) {
-                        case "Work":     return "#0D1D30"
-                        case "Learning": return "#271E06"
-                        case "Personal": return "#0F2818"
-                        default:         return "#161B22"
+                        case "Work":     return Theme.accentBlueBg
+                        case "Learning": return Theme.accentAmberBg
+                        case "Personal": return Theme.accentGreenBg
+                        default:         return Theme.surfaceBadge
                         }
                     }
                     border.color: {
                         switch (card.activityCategory) {
-                        case "Work":     return "#1F6FEB"
-                        case "Learning": return "#9E6A03"
-                        case "Personal": return "#238636"
-                        default:         return "#30363D"
+                        case "Work":     return Theme.accentBlueBorder
+                        case "Learning": return Theme.accentAmberBorder
+                        case "Personal": return Theme.accentGreenBorder
+                        default:         return Theme.borderDefault
                         }
                     }
                     border.width: 1
@@ -121,10 +126,10 @@ Rectangle {
                         font.bold: true
                         color: {
                             switch (card.activityCategory) {
-                            case "Work":     return "#58A6FF"
-                            case "Learning": return "#E3B341"
-                            case "Personal": return "#3FB950"
-                            default:         return "#8B949E"
+                            case "Work":     return Theme.accentBlue
+                            case "Learning": return Theme.accentAmber
+                            case "Personal": return Theme.accentGreen
+                            default:         return Theme.textSecondary
                             }
                         }
                     }
@@ -135,8 +140,8 @@ Rectangle {
                     radius: 10
                     implicitWidth: durText.implicitWidth + 14
                     implicitHeight: 20
-                    color: "#21262D"
-                    border.color: "#30363D"
+                    color: Theme.surfaceBadge
+                    border.color: Theme.borderDefault
                     border.width: 1
 
                     Text {
@@ -144,7 +149,8 @@ Rectangle {
                         anchors.centerIn: parent
                         text: "⏱ " + card.activityDuration + " min"
                         font.pixelSize: 11
-                        color: "#C9D1D9"
+                        color: Theme.textSecondary
+                        font.bold: true
                     }
                 }
             }
@@ -156,16 +162,16 @@ Rectangle {
             Layout.preferredWidth: 32
             Layout.preferredHeight: 32
             radius: 6
-            color: delHover.hovered ? "#38171B" : "transparent"
-            border.color: delHover.hovered ? "#F85149" : "transparent"
+            color: delHover.hovered ? Theme.accentRedBg : "transparent"
+            border.color: delHover.hovered ? Theme.accentRedBorder : "transparent"
             border.width: 1
 
             Text {
                 anchors.centerIn: parent
                 text: "✕"
-                font.pixelSize: 14
+                font.pixelSize: 13
                 font.bold: true
-                color: delHover.hovered ? "#FF7B72" : "#6E7681"
+                color: delHover.hovered ? Theme.accentRed : Theme.textMuted
             }
 
             HoverHandler { id: delHover }

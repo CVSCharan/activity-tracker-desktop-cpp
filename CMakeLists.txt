@@ -56,6 +56,7 @@ set(SOURCES
 
 # ── QML / Resource Files ──────────────────────────────────────────────────────
 set(QML_FILES
+    qml/Theme.qml
     qml/main.qml
     qml/views/ActivityListView.qml
     qml/views/EmptyStateView.qml
@@ -64,6 +65,9 @@ set(QML_FILES
     qml/components/SummaryBar.qml
     qml/components/StatsDashboard.qml
 )
+
+# Register Theme.qml as a QML singleton
+set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 # ── Executable ────────────────────────────────────────────────────────────────
 qt_add_executable(ActivityTracker

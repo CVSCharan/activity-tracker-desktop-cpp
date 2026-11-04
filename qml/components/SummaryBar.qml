@@ -1,13 +1,16 @@
-// SummaryBar.qml — high-contrast bottom status bar
-
+// SummaryBar.qml — bottom status bar with theme-aware styling
 import QtQuick
 import QtQuick.Layouts
+import ActivityTracker 1.0
 
 Rectangle {
-    height: 42
-    color: "#161B22"
-    border.color: "#30363D"
+    height: 40
+    color: Theme.surfaceNav
+    border.color: Theme.borderDefault
     border.width: 1
+
+    Behavior on color { ColorAnimation { duration: 150 } }
+    Behavior on border.color { ColorAnimation { duration: 150 } }
 
     RowLayout {
         anchors {
@@ -20,24 +23,36 @@ Rectangle {
         // Total count badge
         RowLayout {
             spacing: 6
-            Text { text: "Total:"; color: "#8B949E"; font.pixelSize: 13 }
+            Text { text: "Total:"; color: Theme.textSecondary; font.pixelSize: 12 }
             Text {
                 text: activityModel.count + " items"
-                color: "#F0F6FC"
+                color: Theme.textPrimary
                 font.bold: true
-                font.pixelSize: 13
+                font.pixelSize: 12
             }
         }
 
         // Completed count badge
         RowLayout {
             spacing: 6
-            Text { text: "Completed:"; color: "#8B949E"; font.pixelSize: 13 }
+            Text { text: "Completed:"; color: Theme.textSecondary; font.pixelSize: 12 }
             Text {
                 text: activityService.completedCount
-                color: "#3FB950"
+                color: Theme.accentGreen
                 font.bold: true
-                font.pixelSize: 13
+                font.pixelSize: 12
+            }
+        }
+
+        // Pending count badge
+        RowLayout {
+            spacing: 6
+            Text { text: "Pending:"; color: Theme.textSecondary; font.pixelSize: 12 }
+            Text {
+                text: activityService.pendingCount
+                color: Theme.accentAmber
+                font.bold: true
+                font.pixelSize: 12
             }
         }
 
@@ -46,22 +61,22 @@ Rectangle {
         // Today duration badge
         Rectangle {
             radius: 12
-            color: "#0D1D30"
-            border.color: "#1F6FEB"
+            color: Theme.accentBlueBg
+            border.color: Theme.accentBlueBorder
             border.width: 1
             implicitWidth: durText.implicitWidth + 18
-            implicitHeight: 26
+            implicitHeight: 24
 
             RowLayout {
                 id: durText
                 anchors.centerIn: parent
                 spacing: 6
-                Text { text: "Today:"; color: "#8B949E"; font.pixelSize: 12 }
+                Text { text: "Today:"; color: Theme.textSecondary; font.pixelSize: 11 }
                 Text {
                     text: activityService.totalDurationToday + " min"
-                    color: "#58A6FF"
+                    color: Theme.accentBlue
                     font.bold: true
-                    font.pixelSize: 12
+                    font.pixelSize: 11
                 }
             }
         }

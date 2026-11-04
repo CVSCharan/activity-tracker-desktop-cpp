@@ -7,6 +7,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  Qt6_DIR: ''
+
 jobs:
   build:
     name: ${{ matrix.os }} - ${{ matrix.build_type }}
@@ -36,7 +39,7 @@ jobs:
       - name: Configure CMake (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" .
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="$env:Qt6_DIR" .
 
       - name: Compile (Windows)
         if: matrix.os == 'windows-latest'
@@ -58,7 +61,7 @@ jobs:
       - name: Configure CMake (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}" .
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_PREFIX_PATH="$Qt6_DIR" .
 
       - name: Compile (macOS)
         if: matrix.os == 'macos-latest'

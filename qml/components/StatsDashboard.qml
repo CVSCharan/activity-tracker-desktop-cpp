@@ -1,7 +1,7 @@
-// StatsDashboard.qml — top summary cards displaying high-level metrics
-
+// StatsDashboard.qml — executive KPI metrics cards with live progress bars
 import QtQuick
 import QtQuick.Layouts
+import ActivityTracker 1.0
 
 RowLayout {
     id: statsRow
@@ -11,10 +11,10 @@ RowLayout {
     component StatCard: Rectangle {
         id: cardRoot
         Layout.fillWidth: true
-        Layout.preferredHeight: 84
+        Layout.preferredHeight: 90
         radius: 10
-        color: cardHover.hovered ? "#1C2128" : "#161B22"
-        border.color: cardHover.hovered ? accentColor : "#30363D"
+        color: cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard
+        border.color: cardHover.hovered ? accentColor : Theme.borderDefault
         border.width: 1
 
         Behavior on color { ColorAnimation { duration: 150 } }
@@ -22,11 +22,12 @@ RowLayout {
 
         HoverHandler { id: cardHover }
 
-        required property string iconText
+        required property string iconSymbol
         required property string statValue
         required property string statTitle
         required property string statSubtitle
         required property color  accentColor
+        property real   progressRatio: 0.0 // 0.0 to 1.0
 
         // Subtle left vertical accent indicator
         Rectangle {
@@ -39,35 +40,62 @@ RowLayout {
             color: accentColor
         }
 
-        RowLayout {
+        ColumnLayout {
             anchors {
                 fill: parent
                 leftMargin: 20
                 rightMargin: 16
                 topMargin: 12
-                bottomMargin: 12
+                bottomMargin: 10
             }
-            spacing: 12
+            spacing: 6
 
-            // Stat numbers & labels
-            ColumnLayout {
+            RowLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 12
 
-                Text {
-                    text: statTitle
-                    font.pixelSize: 11
-                    font.bold: true
-                    color: "#8B949E"
-                    font.letterSpacing: 0.5
+                // Stat Title & Value
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 2
+
+                    Text {
+                        text: statTitle
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: Theme.textSecondary
+                        font.letterSpacing: 0.5
+                    }
+
+                    Text {
+                        text: statValue
+                        font.pixelSize: 22
+                        font.bold: true
+                        color: Theme.textPrimary
+                    }
                 }
 
-                Text {
-                    text: statValue
-                    font.pixelSize: 22
-                    font.bold: true
-                    color: "#F0F6FC"
+                // Circular Icon Badge
+                Rectangle {
+                    Layout.preferredWidth: 36
+                    Layout.preferredHeight: 36
+                    radius: 18
+                    color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.15 : 0.12)
+                    border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.3)
+                    border.width: 1
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: iconSymbol
+                        font.pixelSize: 15
+                    }
                 }
+            }
+
+            // Subtitle & Progress Bar
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
 
                 Text {
                     text: statSubtitle
@@ -75,21 +103,24 @@ RowLayout {
                     color: accentColor
                     font.bold: true
                 }
-            }
 
-            // Circular Icon Badge
-            Rectangle {
-                Layout.preferredWidth: 38
-                Layout.preferredHeight: 38
-                radius: 19
-                color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.15)
-                border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.3)
-                border.width: 1
+                Item { Layout.fillWidth: true }
 
-                Text {
-                    anchors.centerIn: parent
-                    text: iconText
-                    font.pixelSize: 16
+                // Micro Progress Bar
+                Rectangle {
+                    Layout.preferredWidth: 64
+                    Layout.preferredHeight: 4
+                    radius: 2
+                    color: Theme.surfaceBadge
+
+                    Rectangle {
+                        height: parent.height
+                        width: parent.width * Math.max(0.0, Math.min(1.0, cardRoot.progressRatio))
+                        radius: 2
+                        color: accentColor
+
+                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+                    }
                 }
             }
         }
@@ -97,44 +128,48 @@ RowLayout {
 
     // ── 1. Total Activities Card ──────────────────────────────────────────────
     StatCard {
-        iconText: "📋"
+        iconSymbol: "📋"
         statTitle: "TOTAL ACTIVITIES"
         statValue: activityModel.count.toString()
-        statSubtitle: "All logged items"
-        accentColor: "#58A6FF"
+        statSubtitle: activityModel.count === 1 ? "1 item logged" : activityModel.count + " items logged"
+        accentColor: Theme.accentBlue
+        progressRatio: activityModel.count > 0 ? 1.0 : 0.0
     }
 
     // ── 2. Completed Card ─────────────────────────────────────────────────────
     StatCard {
-        iconText: "✅"
+        iconSymbol: "✅"
         statTitle: "COMPLETED"
         statValue: activityService.completedCount.toString()
         statSubtitle: activityService.completionPercentage + "% finished"
-        accentColor: "#3FB950"
+        accentColor: Theme.accentGreen
+        progressRatio: activityService.completionPercentage / 100.0
     }
 
     // ── 3. Pending Card ───────────────────────────────────────────────────────
     StatCard {
-        iconText: "⏳"
+        iconSymbol: "⏳"
         statTitle: "PENDING"
         statValue: activityService.pendingCount.toString()
-        statSubtitle: "In progress"
-        accentColor: "#D29922"
+        statSubtitle: activityService.pendingCount === 1 ? "1 in progress" : activityService.pendingCount + " in progress"
+        accentColor: Theme.accentAmber
+        progressRatio: activityModel.count > 0 ? (activityService.pendingCount / activityModel.count) : 0.0
     }
 
     // ── 4. Logged Today Card ──────────────────────────────────────────────────
     StatCard {
-        iconText: "⏱️"
+        iconSymbol: "⏱️"
         statTitle: "TIME TODAY"
         statValue: activityService.totalDurationToday + " min"
         statSubtitle: formatHours(activityService.totalDurationToday)
-        accentColor: "#A371F7"
+        accentColor: Theme.accentPurple
+        progressRatio: Math.min(1.0, activityService.totalDurationToday / 480.0) // 480 min = 8h work day goal
 
         function formatHours(mins) {
             const h = Math.floor(mins / 60)
             const m = mins % 60
-            if (h === 0) return mins + " minutes"
-            return h + "h " + m + "m total"
+            if (h === 0) return mins + "m tracked"
+            return h + "h " + m + "m tracked"
         }
     }
 }

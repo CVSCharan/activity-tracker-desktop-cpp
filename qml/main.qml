@@ -1,9 +1,9 @@
-// main.qml — Root application window
-
+// main.qml — Root application window with dual light/dark theme and executive UI
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import ActivityTracker 1.0
 
 import "./views"       as Views
 import "./components"  as Components
@@ -11,17 +11,33 @@ import "./components"  as Components
 ApplicationWindow {
     id: root
     visible: true
-    width: 960
-    height: 700
-    minimumWidth: 720
-    minimumHeight: 520
+    width: 1020
+    height: 720
+    minimumWidth: 840
+    minimumHeight: 560
     title: "CVS Activity Tracker"
 
-    // ── Dark theme configuration ─────────────────────────────────────────────
-    Material.theme:      Material.Dark
-    Material.accent:     "#58A6FF"
-    Material.background: "#0D1117"
-    color: "#0D1117"
+    // ── Dynamic Material Style Configuration ─────────────────────────────────
+    Material.theme:      Theme.isDark ? Material.Dark : Material.Light
+    Material.accent:     Theme.accentBlue
+    Material.background: Theme.bgCanvas
+    color: Theme.bgCanvas
+
+    Behavior on color { ColorAnimation { duration: 200 } }
+
+    // ── Global Filter State ──────────────────────────────────────────────────
+    property string activeCategoryFilter: "All"
+    property string activeSearchQuery: ""
+
+    // ── Global Shortcuts ─────────────────────────────────────────────────────
+    Shortcut {
+        sequence: "Ctrl+F"
+        onActivated: searchInput.forceActiveFocus()
+    }
+    Shortcut {
+        sequence: "Ctrl+T"
+        onActivated: Theme.toggleTheme()
+    }
 
     // ── Error notification banner ─────────────────────────────────────────────
     Connections {
@@ -33,7 +49,7 @@ ApplicationWindow {
         }
     }
 
-    // ── Main Layout ───────────────────────────────────────────────────────────
+    // ── Main Window Layout ────────────────────────────────────────────────────
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -42,9 +58,12 @@ ApplicationWindow {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 60
-            color: "#161B22"
-            border.color: "#30363D"
+            color: Theme.surfaceNav
+            border.color: Theme.borderDefault
             border.width: 1
+
+            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on border.color { ColorAnimation { duration: 150 } }
 
             RowLayout {
                 anchors {
@@ -71,13 +90,13 @@ ApplicationWindow {
                             text: "CVS Activity Tracker"
                             font.pixelSize: 16
                             font.bold: true
-                            color: "#F0F6FC"
+                            color: Theme.textPrimary
                         }
                         Text {
                             text: "Enterprise Productivity Desk"
                             font.pixelSize: 10
                             font.bold: true
-                            color: "#58A6FF"
+                            color: Theme.accentBlue
                             font.letterSpacing: 0.5
                         }
                     }
@@ -88,8 +107,8 @@ ApplicationWindow {
                 // Quick stats pill in header
                 Rectangle {
                     radius: 12
-                    color: "#21262D"
-                    border.color: "#30363D"
+                    color: Theme.surfaceBadge
+                    border.color: Theme.borderDefault
                     border.width: 1
                     implicitWidth: headerStats.implicitWidth + 20
                     implicitHeight: 28
@@ -100,15 +119,48 @@ ApplicationWindow {
                         spacing: 8
                         Text {
                             text: "Today's Logged:"
-                            color: "#8B949E"
+                            color: Theme.textSecondary
                             font.pixelSize: 12
                         }
                         Text {
                             text: activityService.totalDurationToday + " min"
-                            color: "#58A6FF"
+                            color: Theme.accentBlue
                             font.bold: true
                             font.pixelSize: 12
                         }
+                    }
+                }
+
+                // ── Theme Switcher Button (Dark 🌙 / Light ☀️) ─────────────────
+                Rectangle {
+                    id: themeToggleBtn
+                    radius: 14
+                    color: themeHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+                    implicitWidth: 86
+                    implicitHeight: 28
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text {
+                            text: Theme.isDark ? "🌙" : "☀️"
+                            font.pixelSize: 12
+                        }
+                        Text {
+                            text: Theme.isDark ? "Dark" : "Light"
+                            font.pixelSize: 12
+                            font.bold: true
+                            color: Theme.textPrimary
+                        }
+                    }
+
+                    HoverHandler { id: themeHover }
+                    TapHandler {
+                        onTapped: Theme.toggleTheme()
                     }
                 }
             }
@@ -122,11 +174,14 @@ ApplicationWindow {
 
             // Left Sidebar: Form
             Rectangle {
-                Layout.preferredWidth: 300
+                Layout.preferredWidth: 320
                 Layout.fillHeight: true
-                color: "#161B22"
-                border.color: "#30363D"
+                color: Theme.surfaceSidebar
+                border.color: Theme.borderDefault
                 border.width: 1
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 Components.AddActivityForm {
                     anchors.fill: parent
@@ -134,69 +189,127 @@ ApplicationWindow {
                 }
             }
 
-            // Right Main: Analytics Cards + Activity List
+            // Right Main: Analytics Cards + Filter Bar + Activity List
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: "#0D1117"
+                color: Theme.bgCanvas
+
+                Behavior on color { ColorAnimation { duration: 150 } }
 
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 18
-                    spacing: 16
+                    spacing: 14
 
                     // ── 1. Top Analytics Stats Cards ──────────────────────────
                     Components.StatsDashboard {
                         Layout.fillWidth: true
                     }
 
-                    // ── 2. List Header ────────────────────────────────────────
+                    // ── 2. Interactive Filter & Search Toolbar ────────────────
                     RowLayout {
                         Layout.fillWidth: true
                         Layout.topMargin: 4
-                        spacing: 8
+                        spacing: 10
 
-                        Text {
-                            text: "Activity Feed"
-                            font.pixelSize: 15
-                            font.bold: true
-                            color: "#F0F6FC"
-                        }
+                        // Category Filter Chips
+                        RowLayout {
+                            spacing: 6
 
-                        Rectangle {
-                            radius: 8
-                            color: "#21262D"
-                            border.color: "#30363D"
-                            border.width: 1
-                            implicitWidth: feedCount.implicitWidth + 12
-                            implicitHeight: 20
+                            Repeater {
+                                model: ["All", "Work", "Learning", "Personal", "Done"]
+                                delegate: Rectangle {
+                                    id: chip
+                                    implicitHeight: 28
+                                    implicitWidth: chipLabel.implicitWidth + 18
+                                    radius: 14
+                                    readonly property bool isSelected: root.activeCategoryFilter === modelData
 
-                            Text {
-                                id: feedCount
-                                anchors.centerIn: parent
-                                text: activityModel.count + " logged"
-                                font.pixelSize: 11
-                                font.bold: true
-                                color: "#8B949E"
+                                    color: isSelected 
+                                           ? Theme.accentBlueBg 
+                                           : (chipHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge)
+                                    border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
+                                    border.width: 1
+
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                                    Text {
+                                        id: chipLabel
+                                        anchors.centerIn: parent
+                                        text: modelData
+                                        font.pixelSize: 12
+                                        font.bold: chip.isSelected
+                                        color: chip.isSelected ? Theme.accentBlue : Theme.textSecondary
+                                    }
+
+                                    HoverHandler { id: chipHover }
+                                    TapHandler {
+                                        onTapped: root.activeCategoryFilter = modelData
+                                    }
+                                }
                             }
                         }
 
                         Item { Layout.fillWidth: true }
 
-                        Text {
-                            text: "● Local Engine Active"
-                            font.pixelSize: 11
-                            color: "#3FB950"
+                        // Live Instant Search Box
+                        Rectangle {
+                            implicitWidth: 190
+                            implicitHeight: 28
+                            radius: 14
+                            color: Theme.surfaceInput
+                            border.color: searchInput.activeFocus ? Theme.borderFocus : Theme.borderDefault
+                            border.width: 1
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
+                                spacing: 4
+
+                                Text {
+                                    text: "🔍"
+                                    font.pixelSize: 11
+                                    color: Theme.textMuted
+                                }
+
+                                TextField {
+                                    id: searchInput
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    placeholderText: "Search..."
+                                    placeholderTextColor: Theme.textMuted
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 11
+                                    background: null
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    selectByMouse: true
+                                    onTextChanged: root.activeSearchQuery = text
+                                }
+
+                                Text {
+                                    visible: searchInput.text.length > 0
+                                    text: "✕"
+                                    font.pixelSize: 10
+                                    color: Theme.textMuted
+                                    TapHandler {
+                                        onTapped: searchInput.text = ""
+                                    }
+                                }
+                            }
                         }
                     }
 
-                    // ── 3. Scrollable Activity List ───────────────────────────
+                    // ── 3. Scrollable Activity List & Empty State ─────────────
                     Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
 
                         Views.ActivityListView {
                             anchors.fill: parent
+                            filterCategory: root.activeCategoryFilter
+                            filterText: root.activeSearchQuery
                             visible: activityModel.count > 0
                         }
 
@@ -223,21 +336,21 @@ ApplicationWindow {
         anchors {
             bottom: parent.bottom
             horizontalCenter: parent.horizontalCenter
-            bottomMargin: 60
+            bottomMargin: 55
         }
 
         visible: false
         width: errorLabel.implicitWidth + 36
-        height: 42
+        height: 40
         radius: 8
-        color: "#DA3633"
-        border.color: "#F85149"
+        color: Theme.accentRedBg
+        border.color: Theme.accentRedBorder
         border.width: 1
 
         Text {
             id: errorLabel
             anchors.centerIn: parent
-            color: "#FFFFFF"
+            color: Theme.accentRed
             font.pixelSize: 13
             font.bold: true
         }
