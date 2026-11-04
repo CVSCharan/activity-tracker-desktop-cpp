@@ -22,6 +22,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Setup Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -72,7 +77,7 @@ jobs:
       - name: Package with macdeployqt (macOS Release)
         if: matrix.os == 'macos-latest' && matrix.build_type == 'Release'
         run: |
-          macdeployqt build/ActivityTracker.app -qmldir=qml -dmg
+          macdeployqt build/ActivityTracker.app -qmldir=qml
           zip -r ActivityTracker-macOS-Release.zip build/ActivityTracker.app
 
       # ── Upload Artifacts ─────────────────────────────────────────────────────

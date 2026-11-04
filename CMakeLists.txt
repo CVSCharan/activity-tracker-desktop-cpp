@@ -28,6 +28,16 @@ if(NOT DEFINED CMAKE_PREFIX_PATH AND NOT DEFINED ENV{CMAKE_PREFIX_PATH})
     endif()
 endif()
 
+# Workaround for Qt 6.8 bug on modern macOS (macOS 14/15/26 / Xcode 16+) where FindWrapOpenGL tries to link obsolete AGL framework
+if(APPLE)
+    if(NOT TARGET WrapOpenGL::WrapOpenGL)
+        add_library(WrapOpenGL::WrapOpenGL INTERFACE IMPORTED)
+        set_target_properties(WrapOpenGL::WrapOpenGL PROPERTIES
+            INTERFACE_LINK_LIBRARIES "-framework OpenGL"
+        )
+    endif()
+endif()
+
 find_package(Qt6 6.4 REQUIRED COMPONENTS
     Core        # QObject, QString, QVector, QJsonDocument, etc.
     Gui         # QGuiApplication, fonts, colors
@@ -131,12 +141,6 @@ add_executable(tst_ActivityModel
     src/persistence/JsonStore.cpp
 )
 
-# Exclude test runner executable from Release builds (only build it in Debug mode)
-set_target_properties(tst_ActivityModel PROPERTIES
-    EXCLUDE_FROM_DEFAULT_BUILD_RELEASE TRUE
-    EXCLUDE_FROM_DEFAULT_BUILD_MINSIZEREL TRUE
-    EXCLUDE_FROM_DEFAULT_BUILD_RELWITHDEBINFO TRUE
-)
 
 target_include_directories(tst_ActivityModel PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -148,3 +152,8 @@ target_link_libraries(tst_ActivityModel PRIVATE
 )
 
 add_test(NAME tst_ActivityModel COMMAND tst_ActivityModel)
+if(WIN32)
+    set_tests_properties(tst_ActivityModel PROPERTIES
+        ENVIRONMENT "PATH=$<TARGET_FILE_DIR:Qt6::Core>;$ENV{PATH}"
+    )
+endif()
