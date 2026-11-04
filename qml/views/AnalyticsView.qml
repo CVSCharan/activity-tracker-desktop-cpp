@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ActivityTracker 1.0
+import "../components" as Components
 
 ScrollView {
     id: analyticsRoot
@@ -35,7 +36,7 @@ ScrollView {
 
                     RowLayout {
                         spacing: 6
-                        Text { text: "⏱️"; font.pixelSize: 13 }
+                        Components.LucideIcon { name: "clock"; size: 13; color: Theme.accentBlue }
                         Text { text: "Total Logged Today"; color: Theme.textSecondary; font.pixelSize: 11; font.bold: true }
                     }
                     Text {
@@ -68,7 +69,7 @@ ScrollView {
 
                     RowLayout {
                         spacing: 6
-                        Text { text: "🎯"; font.pixelSize: 13 }
+                        Components.LucideIcon { name: "target"; size: 13; color: Theme.accentGreen }
                         Text { text: "Daily Target Progress"; color: Theme.textSecondary; font.pixelSize: 11; font.bold: true }
                     }
                     RowLayout {
@@ -88,7 +89,7 @@ ScrollView {
                     }
                     Text {
                         readonly property int remaining: Math.max(0, (authService.dailyGoalMinutes > 0 ? authService.dailyGoalMinutes : 240) - activityService.totalDurationToday)
-                        text: remaining > 0 ? (remaining + " mins to reach daily target") : "🎉 Daily target reached!"
+                        text: remaining > 0 ? (remaining + " mins to reach daily target") : "Daily target reached!"
                         color: remaining > 0 ? Theme.textSecondary : Theme.accentGreen
                         font.pixelSize: 10
                         font.bold: remaining === 0
@@ -112,7 +113,7 @@ ScrollView {
 
                     RowLayout {
                         spacing: 6
-                        Text { text: "🔥"; font.pixelSize: 13 }
+                        Components.LucideIcon { name: "flame"; size: 13; color: Theme.accentAmber }
                         Text { text: "Focus Streak"; color: Theme.textSecondary; font.pixelSize: 11; font.bold: true }
                     }
                     Text {
@@ -265,11 +266,19 @@ ScrollView {
                 anchors.margins: 18
                 spacing: 12
 
-                Text {
-                    text: "💼 Focus Distribution by Category"
-                    font.pixelSize: 15
-                    font.bold: true
-                    color: Theme.textPrimary
+                RowLayout {
+                    spacing: 8
+                    Components.LucideIcon {
+                        name: "briefcase"
+                        size: 15
+                        color: Theme.accentBlue
+                    }
+                    Text {
+                        text: "Focus Distribution by Category"
+                        font.pixelSize: 15
+                        font.bold: true
+                        color: Theme.textPrimary
+                    }
                 }
 
                 // Multi-Segment Horizontal Distribution Bar

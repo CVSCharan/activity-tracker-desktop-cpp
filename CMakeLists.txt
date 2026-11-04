@@ -108,10 +108,14 @@ qt_add_qml_module(ActivityTracker
         resources/icons/clock.svg
         resources/icons/cloud.svg
         resources/icons/copy.svg
+        resources/icons/eye.svg
+        resources/icons/eye-off.svg
         resources/icons/flame.svg
         resources/icons/grip-vertical.svg
         resources/icons/list-todo.svg
+        resources/icons/lock.svg
         resources/icons/log-out.svg
+        resources/icons/mail.svg
         resources/icons/moon.svg
         resources/icons/panel-left.svg
         resources/icons/panel-right.svg

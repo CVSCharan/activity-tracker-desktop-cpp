@@ -1,4 +1,4 @@
-// StatsDashboard.qml — executive KPI metrics cards with responsive grid reflow
+// StatsDashboard.qml — executive KPI metrics cards with responsive grid reflow and Lucide icons
 import QtQuick
 import QtQuick.Layouts
 import ActivityTracker 1.0
@@ -29,7 +29,7 @@ GridLayout {
 
         HoverHandler { id: cardHover }
 
-        required property string iconSymbol
+        required property string iconName
         required property string statValue
         required property string statTitle
         required property string statSubtitle
@@ -82,7 +82,7 @@ GridLayout {
                     }
                 }
 
-                // Circular Icon Badge
+                // Circular Icon Badge with Lucide Icon
                 Rectangle {
                     Layout.preferredWidth: 36
                     Layout.preferredHeight: 36
@@ -91,10 +91,11 @@ GridLayout {
                     border.color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.3)
                     border.width: 1
 
-                    Text {
+                    LucideIcon {
                         anchors.centerIn: parent
-                        text: iconSymbol
-                        font.pixelSize: 15
+                        name: cardRoot.iconName
+                        size: 16
+                        color: cardRoot.accentColor
                     }
                 }
             }
@@ -135,7 +136,7 @@ GridLayout {
 
     // ── 1. Total Activities Card ──────────────────────────────────────────────
     StatCard {
-        iconSymbol: "📋"
+        iconName: "list-todo"
         statTitle: "TOTAL ACTIVITIES"
         statValue: activityModel.count.toString()
         statSubtitle: activityModel.count === 1 ? "1 item logged" : activityModel.count + " items logged"
@@ -145,7 +146,7 @@ GridLayout {
 
     // ── 2. Completed Card ─────────────────────────────────────────────────────
     StatCard {
-        iconSymbol: "✅"
+        iconName: "check"
         statTitle: "COMPLETED"
         statValue: activityService.completedCount.toString()
         statSubtitle: activityService.completionPercentage + "% finished"
@@ -155,7 +156,7 @@ GridLayout {
 
     // ── 3. Pending Card ───────────────────────────────────────────────────────
     StatCard {
-        iconSymbol: "⏳"
+        iconName: "clock"
         statTitle: "PENDING"
         statValue: activityService.pendingCount.toString()
         statSubtitle: activityService.pendingCount === 1 ? "1 in progress" : activityService.pendingCount + " in progress"
@@ -165,7 +166,7 @@ GridLayout {
 
     // ── 4. Logged Today Card ──────────────────────────────────────────────────
     StatCard {
-        iconSymbol: "⏱️"
+        iconName: "flame"
         statTitle: "TIME TODAY"
         statValue: activityService.totalDurationToday + " min"
         statSubtitle: formatHours(activityService.totalDurationToday)

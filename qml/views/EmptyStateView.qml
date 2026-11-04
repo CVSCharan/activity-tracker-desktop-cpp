@@ -1,6 +1,7 @@
-// EmptyStateView.qml — engaging empty state with responsive quick starter templates
+// EmptyStateView.qml — engaging empty state with responsive quick starter templates and Lucide icons
 import QtQuick
 import ActivityTracker 1.0
+import "../components" as Components
 
 Column {
     id: emptyRoot
@@ -17,10 +18,11 @@ Column {
         border.color: Theme.accentBlueBorder
         border.width: 1
 
-        Text {
+        Components.LucideIcon {
             anchors.centerIn: parent
-            text: "📋"
-            font.pixelSize: 32
+            name: "list-todo"
+            size: 30
+            color: Theme.accentBlue
         }
     }
 
@@ -71,18 +73,24 @@ Column {
             required property string title
             required property string category
             required property int    duration
-            required property string iconSymbol
+            required property string iconName
             required property var    accentColor
 
             Column {
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: 6
 
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 6
-                    Text { text: tmplRoot.iconSymbol; font.pixelSize: 14 }
+                    Components.LucideIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: tmplRoot.iconName
+                        size: 13
+                        color: tmplRoot.accentColor
+                    }
                     Text {
+                        anchors.verticalCenter: parent.verticalCenter
                         text: tmplRoot.title
                         font.pixelSize: 12
                         font.bold: true
@@ -122,7 +130,7 @@ Column {
         }
 
         TemplateCard {
-            iconSymbol: "☕"
+            iconName: "zap"
             title: "Daily Standup"
             category: "Work"
             duration: 15
@@ -130,7 +138,7 @@ Column {
         }
 
         TemplateCard {
-            iconSymbol: "🔍"
+            iconName: "search"
             title: "Code Review"
             category: "Work"
             duration: 45
@@ -138,7 +146,7 @@ Column {
         }
 
         TemplateCard {
-            iconSymbol: "📚"
+            iconName: "book-open"
             title: "Study Qt/QML"
             category: "Learning"
             duration: 30
@@ -146,7 +154,7 @@ Column {
         }
 
         TemplateCard {
-            iconSymbol: "🏃"
+            iconName: "flame"
             title: "Workout & Health"
             category: "Personal"
             duration: 30

@@ -1,8 +1,9 @@
-// SignUpView.qml — executive registration screen with password strength & workday preferences
+// SignUpView.qml — executive registration screen with password strength & Lucide icons
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ActivityTracker 1.0
+import "../../components" as Components
 
 Rectangle {
     id: signUpRoot
@@ -36,10 +37,11 @@ Rectangle {
                         Layout.preferredHeight: 44
                         radius: 12
                         color: Theme.accentBlue
-                        Text {
+                        Components.LucideIcon {
                             anchors.centerIn: parent
-                            text: "⏱️"
-                            font.pixelSize: 22
+                            name: "clock"
+                            size: 22
+                            color: "#FFFFFF"
                         }
                     }
 
@@ -137,7 +139,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.margins: 8
                             spacing: 8
-                            Text { text: "⚠️"; font.pixelSize: 13 }
+                            Components.LucideIcon { name: "x"; size: 13; color: Theme.accentRed }
                             Text {
                                 text: authService.errorMessage
                                 color: Theme.accentRed
@@ -168,7 +170,11 @@ Rectangle {
                                 anchors.leftMargin: 12
                                 anchors.rightMargin: 12
                                 spacing: 8
-                                Text { text: "👤"; font.pixelSize: 12; opacity: 0.6 }
+                                Components.LucideIcon {
+                                    name: "user"
+                                    size: 13
+                                    color: nameInput.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
                                 TextField {
                                     id: nameInput
                                     Layout.fillWidth: true
@@ -204,7 +210,11 @@ Rectangle {
                                 anchors.leftMargin: 12
                                 anchors.rightMargin: 12
                                 spacing: 8
-                                Text { text: "✉️"; font.pixelSize: 12; opacity: 0.6 }
+                                Components.LucideIcon {
+                                    name: "mail"
+                                    size: 13
+                                    color: emailInput.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
                                 TextField {
                                     id: emailInput
                                     Layout.fillWidth: true
@@ -240,7 +250,11 @@ Rectangle {
                                 anchors.leftMargin: 12
                                 anchors.rightMargin: 12
                                 spacing: 8
-                                Text { text: "🔒"; font.pixelSize: 12; opacity: 0.6 }
+                                Components.LucideIcon {
+                                    name: "lock"
+                                    size: 13
+                                    color: passInput.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
                                 TextField {
                                     id: passInput
                                     Layout.fillWidth: true
@@ -299,23 +313,22 @@ Rectangle {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 6
+                            spacing: 8
 
                             Repeater {
                                 model: [
-                                    { label: "2 hrs", mins: 120 },
-                                    { label: "4 hrs", mins: 240 },
-                                    { label: "6 hrs", mins: 360 },
-                                    { label: "8 hrs", mins: 480 }
+                                    { label: "2 Hours", mins: 120 },
+                                    { label: "4 Hours", mins: 240 },
+                                    { label: "6 Hours", mins: 360 },
+                                    { label: "8 Hours", mins: 480 }
                                 ]
                                 delegate: Rectangle {
-                                    id: goalPill
                                     Layout.fillWidth: true
                                     implicitHeight: 32
                                     radius: 6
                                     readonly property bool isSelected: signUpRoot.selectedGoalMinutes === modelData.mins
 
-                                    color: isSelected ? Theme.accentBlueBg : (pillHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                                    color: isSelected ? Theme.accentBlueBg : (goalHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
                                     border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
                                     border.width: isSelected ? 2 : 1
 
@@ -323,23 +336,27 @@ Rectangle {
                                         anchors.centerIn: parent
                                         text: modelData.label
                                         font.pixelSize: 11
-                                        font.bold: goalPill.isSelected
-                                        color: goalPill.isSelected ? Theme.accentBlue : Theme.textPrimary
+                                        font.bold: parent.isSelected
+                                        color: parent.isSelected ? Theme.accentBlue : Theme.textSecondary
                                     }
 
-                                    HoverHandler { id: pillHover }
-                                    TapHandler { onTapped: signUpRoot.selectedGoalMinutes = modelData.mins }
+                                    HoverHandler { id: goalHover }
+                                    TapHandler {
+                                        onTapped: signUpRoot.selectedGoalMinutes = modelData.mins
+                                    }
                                 }
                             }
                         }
                     }
 
-                    // Submit Button
+                    // Register Button
                     Button {
                         id: registerBtn
                         Layout.fillWidth: true
                         Layout.topMargin: 4
-                        implicitHeight: 44
+                        implicitHeight: 46
+                        font.pixelSize: 14
+                        font.bold: true
 
                         contentItem: Text {
                             text: "Create Account →"
@@ -357,11 +374,11 @@ Rectangle {
                         }
 
                         onClicked: {
-                            authService.registerUser(nameInput.text, emailInput.text, passInput.text, signUpRoot.selectedGoalMinutes)
+                            authService.registerUser(nameInput.text, emailInput.text, passInput.text, signUpRoot.selectedGoalMinutes);
                         }
                     }
 
-                    // Navigate to Sign In Link
+                    // Back to Login Link
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 4
@@ -379,7 +396,7 @@ Rectangle {
                             font.pixelSize: 12
                             font.bold: true
 
-                            HoverHandler { id: signInHover }
+                            HoverHandler { id: loginLinkHover }
                             TapHandler { onTapped: signUpRoot.navigateToLogin() }
                         }
                     }

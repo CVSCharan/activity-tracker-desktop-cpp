@@ -33,12 +33,20 @@ ColumnLayout {
             border.color: Theme.accentBlueBorder
             border.width: 1
 
-            Text {
+            RowLayout {
                 anchors.centerIn: parent
-                text: "⚡ Fast Log"
-                font.pixelSize: 10
-                font.bold: true
-                color: Theme.accentBlue
+                spacing: 4
+                LucideIcon {
+                    name: "zap"
+                    size: 10
+                    color: Theme.accentBlue
+                }
+                Text {
+                    text: "Fast Log"
+                    font.pixelSize: 10
+                    font.bold: true
+                    color: Theme.accentBlue
+                }
             }
         }
     }
@@ -87,10 +95,10 @@ ColumnLayout {
                 anchors.rightMargin: 10
                 spacing: 8
 
-                Text {
-                    text: "📝"
-                    font.pixelSize: 13
-                    opacity: nameField.activeFocus ? 1.0 : 0.6
+                LucideIcon {
+                    name: "plus"
+                    size: 13
+                    color: nameField.activeFocus ? Theme.accentBlue : Theme.textMuted
                 }
 
                 Item {
@@ -137,11 +145,10 @@ ColumnLayout {
                     radius: 10
                     color: clearNameHover.hovered ? Theme.surfaceCardHover : "transparent"
 
-                    Text {
+                    LucideIcon {
                         anchors.centerIn: parent
-                        text: "✕"
-                        font.pixelSize: 11
-                        font.bold: true
+                        name: "x"
+                        size: 11
                         color: Theme.textMuted
                     }
 
@@ -211,9 +218,15 @@ ColumnLayout {
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 5
-                    Text { text: "💼"; font.pixelSize: 12 }
+                    spacing: 6
+                    LucideIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: "briefcase"
+                        size: 12
+                        color: catWork.isSelected ? Theme.accentBlue : Theme.textPrimary
+                    }
                     Text {
+                        anchors.verticalCenter: parent.verticalCenter
                         text: "Work"
                         font.pixelSize: 12
                         font.bold: catWork.isSelected
@@ -244,9 +257,15 @@ ColumnLayout {
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 5
-                    Text { text: "📚"; font.pixelSize: 12 }
+                    spacing: 6
+                    LucideIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: "book-open"
+                        size: 12
+                        color: catLearn.isSelected ? Theme.accentAmber : Theme.textPrimary
+                    }
                     Text {
+                        anchors.verticalCenter: parent.verticalCenter
                         text: "Learning"
                         font.pixelSize: 12
                         font.bold: catLearn.isSelected
@@ -277,9 +296,15 @@ ColumnLayout {
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 5
-                    Text { text: "🏃"; font.pixelSize: 12 }
+                    spacing: 6
+                    LucideIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: "user"
+                        size: 12
+                        color: catPers.isSelected ? Theme.accentGreen : Theme.textPrimary
+                    }
                     Text {
+                        anchors.verticalCenter: parent.verticalCenter
                         text: "Personal"
                         font.pixelSize: 12
                         font.bold: catPers.isSelected
@@ -454,8 +479,13 @@ ColumnLayout {
         contentItem: RowLayout {
             anchors.centerIn: parent
             spacing: 6
+            LucideIcon {
+                name: "plus"
+                size: 14
+                color: addBtn.enabled ? "#FFFFFF" : Theme.textMuted
+            }
             Text {
-                text: addBtn.text
+                text: "Log Activity"
                 font: addBtn.font
                 color: addBtn.enabled ? "#FFFFFF" : Theme.textMuted
             }

@@ -1,8 +1,9 @@
-// LoginView.qml — executive split-pane authentication screen
+// LoginView.qml — executive split-pane authentication screen with Lucide icons
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ActivityTracker 1.0
+import "../../components" as Components
 
 Rectangle {
     id: loginRoot
@@ -36,10 +37,11 @@ Rectangle {
                         Layout.preferredHeight: 44
                         radius: 12
                         color: Theme.accentBlue
-                        Text {
+                        Components.LucideIcon {
                             anchors.centerIn: parent
-                            text: "⏱️"
-                            font.pixelSize: 22
+                            name: "clock"
+                            size: 22
+                            color: "#FFFFFF"
                         }
                     }
 
@@ -80,7 +82,7 @@ Rectangle {
                     }
                 }
 
-                // Feature Highlights Pills
+                // Feature Highlights Pills with Lucide Icons
                 ColumnLayout {
                     spacing: 10
                     Layout.fillWidth: true
@@ -96,7 +98,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.leftMargin: 12
                             spacing: 8
-                            Text { text: "☁️"; font.pixelSize: 14 }
+                            Components.LucideIcon { name: "cloud"; size: 14; color: Theme.accentBlue }
                             Text { text: "Neon Serverless Cloud Database"; color: "#E2E8F0"; font.pixelSize: 12; font.bold: true }
                         }
                     }
@@ -112,7 +114,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.leftMargin: 12
                             spacing: 8
-                            Text { text: "⏱️"; font.pixelSize: 14 }
+                            Components.LucideIcon { name: "clock"; size: 14; color: Theme.accentAmber }
                             Text { text: "Live Interactive Focus Countdown"; color: "#E2E8F0"; font.pixelSize: 12; font.bold: true }
                         }
                     }
@@ -128,7 +130,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.leftMargin: 12
                             spacing: 8
-                            Text { text: "📋"; font.pixelSize: 14 }
+                            Components.LucideIcon { name: "list-todo"; size: 14; color: Theme.accentGreen }
                             Text { text: "1-Click Daily Standup Markdown Export"; color: "#E2E8F0"; font.pixelSize: 12; font.bold: true }
                         }
                     }
@@ -204,7 +206,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.margins: 8
                             spacing: 8
-                            Text { text: "⚠️"; font.pixelSize: 13 }
+                            Components.LucideIcon { name: "x"; size: 13; color: Theme.accentRed }
                             Text {
                                 text: authService.errorMessage
                                 color: Theme.accentRed
@@ -236,7 +238,11 @@ Rectangle {
                                 anchors.rightMargin: 12
                                 spacing: 8
 
-                                Text { text: "✉️"; font.pixelSize: 13; opacity: emailInput.activeFocus ? 1.0 : 0.6 }
+                                Components.LucideIcon {
+                                    name: "mail"
+                                    size: 14
+                                    color: emailInput.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
 
                                 Item {
                                     Layout.fillWidth: true
@@ -261,7 +267,7 @@ Rectangle {
                                         background: null
                                         placeholderText: ""
                                         selectByMouse: true
-                                        text: "charan@cvs.com" // Pre-filled with seed user for convenience
+                                        text: "charan@cvs.com"
                                     }
                                 }
                             }
@@ -290,7 +296,11 @@ Rectangle {
                                 anchors.rightMargin: 12
                                 spacing: 8
 
-                                Text { text: "🔒"; font.pixelSize: 13; opacity: passwordInput.activeFocus ? 1.0 : 0.6 }
+                                Components.LucideIcon {
+                                    name: "lock"
+                                    size: 14
+                                    color: passwordInput.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
 
                                 Item {
                                     Layout.fillWidth: true
@@ -316,24 +326,24 @@ Rectangle {
                                         placeholderText: ""
                                         selectByMouse: true
                                         echoMode: parent.parent.showPassword ? TextInput.Normal : TextInput.Password
-                                        text: "Password123!" // Pre-filled with seed password for easy testing
+                                        text: "Password123!"
 
                                         onAccepted: submitBtn.clicked()
                                     }
                                 }
 
-                                // Show / Hide Password Eye Toggle
+                                // Show / Hide Password Eye Toggle with LucideIcon
                                 Rectangle {
-                                    implicitWidth: 24
-                                    implicitHeight: 24
-                                    radius: 12
+                                    implicitWidth: 26
+                                    implicitHeight: 26
+                                    radius: 13
                                     color: eyeHover.hovered ? Theme.surfaceCardHover : "transparent"
 
-                                    Text {
+                                    Components.LucideIcon {
                                         anchors.centerIn: parent
-                                        text: parent.parent.parent.showPassword ? "👁️" : "👁️‍🗨️"
-                                        font.pixelSize: 12
-                                        opacity: eyeHover.hovered ? 1.0 : 0.6
+                                        name: parent.parent.parent.showPassword ? "eye-off" : "eye"
+                                        size: 14
+                                        color: eyeHover.hovered ? Theme.textPrimary : Theme.textMuted
                                     }
 
                                     HoverHandler { id: eyeHover }
@@ -427,7 +437,7 @@ Rectangle {
                         RowLayout {
                             anchors.centerIn: parent
                             spacing: 8
-                            Text { text: "⚡"; font.pixelSize: 13 }
+                            Components.LucideIcon { name: "zap"; size: 13; color: Theme.accentBlue }
                             Text {
                                 text: "1-Click Demo Login (Charan Developer)"
                                 font.pixelSize: 12

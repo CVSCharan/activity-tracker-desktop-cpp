@@ -125,21 +125,32 @@ Rectangle {
                     Row {
                         id: catRow
                         anchors.centerIn: parent
-                        spacing: 4
+                        spacing: 5
 
-                        Text {
-                            text: {
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: {
                                 switch (card.category) {
-                                case "Work":     return "💼";
-                                case "Learning": return "📚";
-                                case "Personal": return "🏃";
-                                default:         return "📌";
+                                case "Work":     return "briefcase";
+                                case "Learning": return "book-open";
+                                case "Personal": return "user";
+                                default:         return "list-todo";
                                 }
                             }
-                            font.pixelSize: 11
+                            size: 11
+                            color: {
+                                if (card.done) return Theme.accentGreen;
+                                switch (card.category) {
+                                case "Work":     return Theme.accentBlue;
+                                case "Learning": return Theme.accentAmber;
+                                case "Personal": return Theme.accentGreen;
+                                default:         return Theme.textSecondary;
+                                }
+                            }
                         }
 
                         Text {
+                            anchors.verticalCenter: parent.verticalCenter
                             text: card.category && card.category.length > 0 ? card.category : "General"
                             font.pixelSize: 11
                             font.bold: true
@@ -159,19 +170,31 @@ Rectangle {
                 // Duration pill
                 Rectangle {
                     radius: 10
-                    implicitWidth: durText.implicitWidth + 16
+                    implicitWidth: durRow.implicitWidth + 14
                     implicitHeight: 22
                     color: Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
 
-                    Text {
-                        id: durText
+                    Row {
+                        id: durRow
                         anchors.centerIn: parent
-                        text: "⏱ " + card.durationMinutes + " min"
-                        font.pixelSize: 11
-                        color: Theme.textSecondary
-                        font.bold: true
+                        spacing: 4
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "clock"
+                            size: 11
+                            color: Theme.textSecondary
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: card.durationMinutes + " min"
+                            font.pixelSize: 11
+                            color: Theme.textSecondary
+                            font.bold: true
+                        }
                     }
                 }
 
@@ -179,19 +202,31 @@ Rectangle {
                 Rectangle {
                     visible: card.done
                     radius: 10
-                    implicitWidth: statusText.implicitWidth + 14
+                    implicitWidth: statusRow.implicitWidth + 14
                     implicitHeight: 22
                     color: Theme.accentGreenBg
                     border.color: Theme.accentGreenBorder
                     border.width: 1
 
-                    Text {
-                        id: statusText
+                    Row {
+                        id: statusRow
                         anchors.centerIn: parent
-                        text: "✓ Completed"
-                        font.pixelSize: 10
-                        font.bold: true
-                        color: Theme.accentGreen
+                        spacing: 4
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "check"
+                            size: 11
+                            color: Theme.accentGreen
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Completed"
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: Theme.accentGreen
+                        }
                     }
                 }
             }
@@ -207,11 +242,10 @@ Rectangle {
             border.color: delHover.hovered ? Theme.accentRedBorder : "transparent"
             border.width: 1
 
-            Text {
+            LucideIcon {
                 anchors.centerIn: parent
-                text: "✕"
-                font.pixelSize: 13
-                font.bold: true
+                name: "trash-2"
+                size: 13
                 color: delHover.hovered ? Theme.accentRed : Theme.textMuted
             }
 

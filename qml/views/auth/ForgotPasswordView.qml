@@ -1,8 +1,9 @@
-// ForgotPasswordView.qml — executive password recovery screen
+// ForgotPasswordView.qml — executive password recovery screen with Lucide icons
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import ActivityTracker 1.0
+import "../../components" as Components
 
 Rectangle {
     id: forgotRoot
@@ -43,10 +44,11 @@ Rectangle {
                         Layout.preferredHeight: 44
                         radius: 12
                         color: Theme.accentBlue
-                        Text {
+                        Components.LucideIcon {
                             anchors.centerIn: parent
-                            text: "⏱️"
-                            font.pixelSize: 22
+                            name: "clock"
+                            size: 22
+                            color: "#FFFFFF"
                         }
                     }
 
@@ -144,7 +146,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.margins: 8
                             spacing: 8
-                            Text { text: "✓"; font.pixelSize: 13; color: Theme.accentGreen; font.bold: true }
+                            Components.LucideIcon { name: "check"; size: 13; color: Theme.accentGreen }
                             Text {
                                 text: "Password successfully updated! You can now sign in."
                                 color: Theme.accentGreen
@@ -171,7 +173,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.margins: 8
                             spacing: 8
-                            Text { text: "⚠️"; font.pixelSize: 13 }
+                            Components.LucideIcon { name: "x"; size: 13; color: Theme.accentRed }
                             Text {
                                 text: authService.errorMessage
                                 color: Theme.accentRed
@@ -202,7 +204,11 @@ Rectangle {
                                 anchors.leftMargin: 12
                                 anchors.rightMargin: 12
                                 spacing: 8
-                                Text { text: "✉️"; font.pixelSize: 13; opacity: 0.6 }
+                                Components.LucideIcon {
+                                    name: "mail"
+                                    size: 13
+                                    color: resetEmail.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
                                 TextField {
                                     id: resetEmail
                                     Layout.fillWidth: true
@@ -238,7 +244,11 @@ Rectangle {
                                 anchors.leftMargin: 12
                                 anchors.rightMargin: 12
                                 spacing: 8
-                                Text { text: "🔒"; font.pixelSize: 13; opacity: 0.6 }
+                                Components.LucideIcon {
+                                    name: "lock"
+                                    size: 13
+                                    color: newPass.activeFocus ? Theme.accentBlue : Theme.textMuted
+                                }
                                 TextField {
                                     id: newPass
                                     Layout.fillWidth: true
@@ -258,13 +268,15 @@ Rectangle {
 
                     // Submit Button
                     Button {
-                        id: updateBtn
+                        id: resetBtn
                         Layout.fillWidth: true
                         Layout.topMargin: 4
                         implicitHeight: 46
+                        font.pixelSize: 14
+                        font.bold: true
 
                         contentItem: Text {
-                            text: forgotRoot.isSuccess ? "Proceed to Sign In →" : "Update Password →"
+                            text: "Update Password →"
                             color: "#FFFFFF"
                             font.bold: true
                             font.pixelSize: 14
@@ -274,33 +286,29 @@ Rectangle {
 
                         background: Rectangle {
                             radius: 8
-                            color: updateBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (upHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)
-                            HoverHandler { id: upHover }
+                            color: resetBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (resetHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)
+                            HoverHandler { id: resetHover }
                         }
 
                         onClicked: {
-                            if (forgotRoot.isSuccess) {
-                                forgotRoot.navigateToLogin()
-                            } else {
-                                authService.resetPassword(resetEmail.text, newPass.text)
-                            }
+                            authService.resetPassword(resetEmail.text, newPass.text);
                         }
                     }
 
-                    // Back to Sign In Link
+                    // Back to Login Link
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
-                        Layout.topMargin: 8
+                        Layout.topMargin: 4
                         spacing: 4
 
                         Text {
-                            text: "← Back to"
+                            text: "Remembered your credentials?"
                             color: Theme.textSecondary
                             font.pixelSize: 12
                         }
 
                         Text {
-                            text: "Sign In"
+                            text: "Back to Sign In"
                             color: Theme.accentBlue
                             font.pixelSize: 12
                             font.bold: true

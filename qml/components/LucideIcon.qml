@@ -16,7 +16,8 @@ Item {
     Image {
         id: rawIcon
         anchors.fill: parent
-        source: iconRoot.name.length > 0 ? ("qrc:/ActivityTracker/resources/icons/" + iconRoot.name + ".svg") : ""
+        // Qt 6 QTP0001 places resources under qrc:/qt/qml/ActivityTracker/, relative is ../../resources/icons/
+        source: iconRoot.name.length > 0 ? ("../../resources/icons/" + iconRoot.name + ".svg") : ""
         sourceSize.width: iconRoot.size * 2
         sourceSize.height: iconRoot.size * 2
         smooth: true

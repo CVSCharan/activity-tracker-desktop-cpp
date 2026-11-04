@@ -122,10 +122,11 @@ ApplicationWindow {
                         Layout.preferredHeight: 36
                         radius: 10
                         color: Theme.accentBlue
-                        Text {
+                        Components.LucideIcon {
                             anchors.centerIn: parent
-                            text: "⏱️"
-                            font.pixelSize: 18
+                            name: "clock"
+                            size: 18
+                            color: "#FFFFFF"
                         }
                     }
                     ColumnLayout {
@@ -198,8 +199,14 @@ ApplicationWindow {
                         id: userRow
                         anchors.centerIn: parent
                         spacing: 6
-                        Text { text: "👤"; font.pixelSize: 11 }
+                        Components.LucideIcon {
+                            Layout.alignment: Qt.AlignVCenter
+                            name: "user"
+                            size: 12
+                            color: Theme.accentBlue
+                        }
                         Text {
+                            Layout.alignment: Qt.AlignVCenter
                             text: authService.currentUserName.length > 0 ? authService.currentUserName : "User"
                             color: Theme.textPrimary
                             font.bold: true
@@ -208,7 +215,7 @@ ApplicationWindow {
                     }
                 }
 
-                // ── Theme Switcher Button (Dark 🌙 / Light ☀️) ─────────────────
+                // ── Theme Switcher Button (Dark / Light) ─────────────────────
                 Rectangle {
                     id: themeToggleBtn
                     radius: 14
@@ -223,11 +230,14 @@ ApplicationWindow {
                     RowLayout {
                         anchors.centerIn: parent
                         spacing: 6
-                        Text {
-                            text: Theme.isDark ? "🌙" : "☀️"
-                            font.pixelSize: 11
+                        Components.LucideIcon {
+                            Layout.alignment: Qt.AlignVCenter
+                            name: Theme.isDark ? "moon" : "sun"
+                            size: 12
+                            color: Theme.accentAmber
                         }
                         Text {
+                            Layout.alignment: Qt.AlignVCenter
                             text: Theme.isDark ? "Dark" : "Light"
                             font.pixelSize: 11
                             font.bold: true
@@ -253,10 +263,11 @@ ApplicationWindow {
 
                     Behavior on color { ColorAnimation { duration: 120 } }
 
-                    Text {
+                    Components.LucideIcon {
                         anchors.centerIn: parent
-                        text: "🚪"
-                        font.pixelSize: 12
+                        name: "log-out"
+                        size: 13
+                        color: logoutHover.hovered ? Theme.accentRed : Theme.textMuted
                     }
 
                     ToolTip.visible: logoutHover.hovered
@@ -376,9 +387,10 @@ ApplicationWindow {
                                 anchors.rightMargin: 8
                                 spacing: 6
 
-                                Text {
-                                    text: "🔍"
-                                    font.pixelSize: 12
+                                Components.LucideIcon {
+                                    name: "search"
+                                    size: 13
+                                    color: Theme.textSecondary
                                     opacity: searchInput.activeFocus ? 1.0 : 0.6
                                 }
 
@@ -417,11 +429,10 @@ ApplicationWindow {
                                     radius: 9
                                     color: searchClearHover.hovered ? Theme.surfaceCardHover : "transparent"
 
-                                    Text {
+                                    Components.LucideIcon {
                                         anchors.centerIn: parent
-                                        text: "✕"
-                                        font.pixelSize: 10
-                                        font.bold: true
+                                        name: "x"
+                                        size: 10
                                         color: Theme.textMuted
                                     }
 
