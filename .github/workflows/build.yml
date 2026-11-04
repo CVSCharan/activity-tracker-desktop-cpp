@@ -34,6 +34,7 @@ jobs:
           host: ${{ matrix.os == 'windows-latest' && 'windows' || 'mac' }}
           target: 'desktop'
           arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022' || 'clang_64' }}
+          setup-python: false
           cache: true
 
       # ── Build on Windows ─────────────────────────────────────────────────────
