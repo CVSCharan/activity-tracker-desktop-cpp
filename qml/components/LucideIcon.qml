@@ -1,5 +1,6 @@
 // LucideIcon.qml — Reusable, vector-sharp Lucide SVG icon with dynamic theme tinting
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Effects
 import ActivityTracker 1.0
 
@@ -10,6 +11,8 @@ Item {
     property int size: 16
     property color color: Theme.textPrimary
 
+    width: size
+    height: size
     implicitWidth: size
     implicitHeight: size
     Layout.preferredWidth: size
