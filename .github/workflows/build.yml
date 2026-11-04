@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-2022, macos-latest]
         build_type: [Debug, Release]
 
     steps:
@@ -31,66 +31,66 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.8.0'
-          host: ${{ matrix.os == 'windows-latest' && 'windows' || 'mac' }}
+          host: ${{ runner.os == 'Windows' && 'windows' || 'mac' }}
           target: 'desktop'
-          arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022_64' || 'clang_64' }}
+          arch: ${{ runner.os == 'Windows' && 'win64_msvc2022_64' || 'clang_64' }}
           setup-python: false
           cache: true
 
       # ── Build on Windows ─────────────────────────────────────────────────────
       - name: Configure CMake (Windows)
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: |
           cmake -B build -G "Visual Studio 17 2022" -A x64 .
 
       - name: Compile (Windows)
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: |
           cmake --build build --config ${{ matrix.build_type }}
 
       - name: Run Unit Tests (Windows)
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         run: |
           ctest --test-dir build -C ${{ matrix.build_type }} --output-on-failure
 
       - name: Deploy Dependencies with windeployqt (Windows Release)
-        if: matrix.os == 'windows-latest' && matrix.build_type == 'Release'
+        if: runner.os == 'Windows' && matrix.build_type == 'Release'
         run: |
           windeployqt --qmldir qml build/Release/ActivityTracker.exe
           Compress-Archive -Path build/Release/* -DestinationPath ActivityTracker-Windows-Release.zip
 
       # ── Build on macOS ───────────────────────────────────────────────────────
       - name: Configure CMake (macOS)
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} .
 
       - name: Compile (macOS)
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           cmake --build build --config ${{ matrix.build_type }}
 
       - name: Run Unit Tests (macOS)
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           ctest --test-dir build -C ${{ matrix.build_type }} --output-on-failure
 
       - name: Package with macdeployqt (macOS Release)
-        if: matrix.os == 'macos-latest' && matrix.build_type == 'Release'
+        if: runner.os == 'macOS' && matrix.build_type == 'Release'
         run: |
           macdeployqt build/ActivityTracker.app -qmldir=qml
           zip -r ActivityTracker-macOS-Release.zip build/ActivityTracker.app
 
       # ── Upload Artifacts ─────────────────────────────────────────────────────
       - name: Upload Windows Release Artifact
-        if: matrix.os == 'windows-latest' && matrix.build_type == 'Release'
+        if: runner.os == 'Windows' && matrix.build_type == 'Release'
         uses: actions/upload-artifact@v4
         with:
           name: ActivityTracker-Windows-Release
           path: ActivityTracker-Windows-Release.zip
 
       - name: Upload macOS Release Artifact
-        if: matrix.os == 'macos-latest' && matrix.build_type == 'Release'
+        if: runner.os == 'macOS' && matrix.build_type == 'Release'
         uses: actions/upload-artifact@v4
         with:
           name: ActivityTracker-macOS-Release
