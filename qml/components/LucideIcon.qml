@@ -12,14 +12,16 @@ Item {
 
     implicitWidth: size
     implicitHeight: size
+    Layout.preferredWidth: size
+    Layout.preferredHeight: size
 
     Image {
         id: rawIcon
         anchors.fill: parent
         // Qt 6 QTP0001 places resources under qrc:/qt/qml/ActivityTracker/, relative is ../../resources/icons/
         source: iconRoot.name.length > 0 ? ("../../resources/icons/" + iconRoot.name + ".svg") : ""
-        sourceSize.width: iconRoot.size * 2
-        sourceSize.height: iconRoot.size * 2
+        sourceSize.width: Math.max(32, iconRoot.size * 2)
+        sourceSize.height: Math.max(32, iconRoot.size * 2)
         smooth: true
         mipmap: true
         fillMode: Image.PreserveAspectFit

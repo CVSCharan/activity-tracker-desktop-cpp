@@ -67,6 +67,7 @@ Rectangle {
         // ── Done checkbox ─────────────────────────────────────────────────────
         CheckBox {
             id: doneBox
+            Layout.alignment: Qt.AlignVCenter
             checked: card.done
             enabled: !card.done
             Material.accent: Theme.accentGreen
@@ -80,6 +81,7 @@ Rectangle {
         // ── Title + Metadata badges ───────────────────────────────────────────
         ColumnLayout {
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
             spacing: 6
 
             // Activity Name
@@ -137,7 +139,7 @@ Rectangle {
                                 default:         return "list-todo";
                                 }
                             }
-                            size: 11
+                            size: 12
                             color: {
                                 if (card.done) return Theme.accentGreen;
                                 switch (card.category) {
@@ -184,7 +186,7 @@ Rectangle {
                         LucideIcon {
                             anchors.verticalCenter: parent.verticalCenter
                             name: "clock"
-                            size: 11
+                            size: 12
                             color: Theme.textSecondary
                         }
 
@@ -216,7 +218,7 @@ Rectangle {
                         LucideIcon {
                             anchors.verticalCenter: parent.verticalCenter
                             name: "check"
-                            size: 11
+                            size: 12
                             color: Theme.accentGreen
                         }
 
@@ -235,6 +237,7 @@ Rectangle {
         // ── Delete Button ─────────────────────────────────────────────────────
         Rectangle {
             id: delBtn
+            Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: 32
             Layout.preferredHeight: 32
             radius: 6

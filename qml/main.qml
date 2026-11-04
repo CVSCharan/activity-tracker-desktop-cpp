@@ -388,6 +388,7 @@ ApplicationWindow {
                                 spacing: 6
 
                                 Components.LucideIcon {
+                                    Layout.alignment: Qt.AlignVCenter
                                     name: "search"
                                     size: 13
                                     color: Theme.textSecondary
@@ -397,6 +398,7 @@ ApplicationWindow {
                                 Item {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
+                                    Layout.alignment: Qt.AlignVCenter
 
                                     Text {
                                         anchors.left: parent.left
@@ -423,6 +425,7 @@ ApplicationWindow {
                                 }
 
                                 Rectangle {
+                                    Layout.alignment: Qt.AlignVCenter
                                     visible: searchInput.text.length > 0
                                     implicitWidth: 18
                                     implicitHeight: 18
