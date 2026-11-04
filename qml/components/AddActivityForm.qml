@@ -188,7 +188,7 @@ ColumnLayout {
                 text: durationSpinBox.value.toString()
                 font: durationSpinBox.font
                 color: Theme.textPrimary
-                horizontalAlignment: Qt.AlignHCenter
+                horizontalAlignment: TextInput.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
                 readOnly: !durationSpinBox.editable
                 validator: durationSpinBox.validator

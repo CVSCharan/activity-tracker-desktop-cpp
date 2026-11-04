@@ -65,7 +65,7 @@ Column {
             required property string category
             required property int    duration
             required property string iconSymbol
-            required property color  accentColor
+            required property var    accentColor
 
             Column {
                 anchors.centerIn: parent

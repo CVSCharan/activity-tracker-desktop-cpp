@@ -26,7 +26,7 @@ RowLayout {
         required property string statValue
         required property string statTitle
         required property string statSubtitle
-        required property color  accentColor
+        required property var    accentColor
         property real   progressRatio: 0.0 // 0.0 to 1.0
 
         // Subtle left vertical accent indicator
