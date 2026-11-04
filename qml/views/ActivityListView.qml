@@ -19,27 +19,31 @@ ListView {
     leftMargin:   0
     rightMargin:  0
 
+    // Smooth list transitions
+    add: Transition {
+        NumberAnimation { properties: "opacity,scale"; from: 0; to: 1; duration: 200; easing.type: Easing.OutCubic }
+    }
+    remove: Transition {
+        NumberAnimation { properties: "opacity,scale"; to: 0; duration: 150; easing.type: Easing.InCubic }
+    }
+    displaced: Transition {
+        NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic }
+    }
+
     delegate: Components.ActivityCard {
         id: cardDelegate
         width: listView.width
 
-        // Explicit model.role bindings
-        activityName:      model.name
-        activityCategory:  model.category
-        activityDuration:  model.durationMinutes
-        activityDone:      model.done
-        activityIndex:     model.index
-
         // ── Filter Evaluation ─────────────────────────────────────────────────
         readonly property bool matchesCategory: {
             if (listView.filterCategory === "All") return true;
-            if (listView.filterCategory === "Done") return model.done;
-            return model.category === listView.filterCategory;
+            if (listView.filterCategory === "Done") return cardDelegate.done;
+            return cardDelegate.category === listView.filterCategory;
         }
 
         readonly property bool matchesSearch: {
             if (listView.filterText.trim().length === 0) return true;
-            return model.name.toLowerCase().includes(listView.filterText.trim().toLowerCase());
+            return cardDelegate.name.toLowerCase().includes(listView.filterText.trim().toLowerCase());
         }
 
         readonly property bool isVisibleInFilter: matchesCategory && matchesSearch
@@ -49,8 +53,8 @@ ListView {
 
         Behavior on height { NumberAnimation { duration: 150 } }
 
-        onRemoveRequested: activityService.removeActivity(activityIndex)
-        onCompleteRequested: activityService.markComplete(activityIndex)
+        onRemoveRequested: activityService.removeActivity(cardDelegate.index)
+        onCompleteRequested: activityService.markComplete(cardDelegate.index)
     }
 
     ScrollBar.vertical: ScrollBar {

@@ -28,7 +28,7 @@ We will follow this roadmap to implement features **one by one on a daily basis*
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        PHASE 1: BRANDING & STARTUP                     │
 ├────────────────────────────────┬───────────────────────────────────────┤
-│ Milestone 1.1: Visual Identity │ • App Name: "CVS Activity Tracker"     │
+│ Milestone 1.1: Visual Identity │ • App Name: "CVS Activity Tracker"    │
 │                                │ • Custom branded SVG & PNG Logo       │
 │                                │ • Window icon & Taskbar badge         │
 ├────────────────────────────────┼───────────────────────────────────────┤

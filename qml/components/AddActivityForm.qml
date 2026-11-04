@@ -1,13 +1,14 @@
-// AddActivityForm.qml — ergonomic input form with 1-click quick duration pills
+// AddActivityForm.qml — ergonomic, modern input form with custom desktop text fields
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Material
 import QtQuick.Layouts
 import ActivityTracker 1.0
 
 ColumnLayout {
     id: formRoot
     spacing: 16
+
+    property string selectedCategory: "Work"
 
     // ── Section Title ─────────────────────────────────────────────────────────
     RowLayout {
@@ -24,58 +25,158 @@ ColumnLayout {
 
         Item { Layout.fillWidth: true }
 
-        Text {
-            text: "Fast Log"
-            font.pixelSize: 11
-            font.bold: true
-            color: Theme.accentBlue
+        Rectangle {
+            radius: 10
+            implicitWidth: 64
+            implicitHeight: 22
+            color: Theme.accentBlueBg
+            border.color: Theme.accentBlueBorder
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: "⚡ Fast Log"
+                font.pixelSize: 10
+                font.bold: true
+                color: Theme.accentBlue
+            }
         }
     }
 
-    // ── Activity Name ─────────────────────────────────────────────────────────
+    // ── Activity Name (Custom Desktop Input Field) ─────────────────────────────
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 6
 
-        Text {
-            text: "Activity Name"
-            color: Theme.textSecondary
-            font.pixelSize: 13
-            font.bold: true
-        }
-
-        TextField {
-            id: nameField
+        RowLayout {
             Layout.fillWidth: true
-            implicitHeight: 42
-            leftPadding: 14
-            rightPadding: 14
-            topPadding: 11
-            bottomPadding: 11
-            verticalAlignment: TextInput.AlignVCenter
-            placeholderText: "e.g. Code review, Study QML"
-            placeholderTextColor: Theme.textMuted
-            color: Theme.textPrimary
-            font.pixelSize: 13
-            selectByMouse: true
-            clip: true
-
-            background: Rectangle {
-                radius: 6
-                color: Theme.surfaceInput
-                border.color: nameField.activeFocus ? Theme.borderFocus : Theme.borderDefault
-                border.width: nameField.activeFocus ? 2 : 1
+            Text {
+                text: "Activity Name"
+                color: Theme.textSecondary
+                font.pixelSize: 13
+                font.bold: true
             }
 
-            onAccepted: {
-                if (nameField.text.trim().length > 0) {
-                    addBtn.clicked()
+            Item { Layout.fillWidth: true }
+
+            Text {
+                text: nameField.text.length > 0 ? nameField.text.length + " chars" : ""
+                color: Theme.textMuted
+                font.pixelSize: 11
+            }
+        }
+
+        // Modern input container with focus halo and zero placeholder overlay
+        Rectangle {
+            id: inputWrapper
+            Layout.fillWidth: true
+            implicitHeight: 44
+            radius: 8
+            color: nameField.activeFocus 
+                   ? (Theme.isDark ? "#121A28" : "#F8FAFC") 
+                   : Theme.surfaceInput
+            border.color: nameField.activeFocus ? Theme.accentBlue : Theme.borderDefault
+            border.width: nameField.activeFocus ? 2 : 1
+
+            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on border.color { ColorAnimation { duration: 150 } }
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 10
+                spacing: 8
+
+                Text {
+                    text: "📝"
+                    font.pixelSize: 13
+                    opacity: nameField.activeFocus ? 1.0 : 0.6
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    // Custom Smooth Placeholder (vanishes completely when user types; never overlays text)
+                    Text {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "e.g. Code review, Study Qt/QML..."
+                        color: Theme.textMuted
+                        font.pixelSize: 13
+                        visible: nameField.text.length === 0
+                        opacity: nameField.activeFocus ? 0.35 : 0.8
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
+                    }
+
+                    TextField {
+                        id: nameField
+                        anchors.fill: parent
+                        verticalAlignment: TextInput.AlignVCenter
+                        color: Theme.textPrimary
+                        font.pixelSize: 13
+                        font.bold: false
+                        selectByMouse: true
+                        clip: true
+                        background: null
+                        placeholderText: "" // Empty so Material style's internal floating label does NOT clash
+
+                        onAccepted: {
+                            if (nameField.text.trim().length > 0) {
+                                addBtn.clicked()
+                            }
+                        }
+                    }
+                }
+
+                // Clear button (✕)
+                Rectangle {
+                    visible: nameField.text.length > 0
+                    implicitWidth: 20
+                    implicitHeight: 20
+                    radius: 10
+                    color: clearNameHover.hovered ? Theme.surfaceCardHover : "transparent"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "✕"
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: Theme.textMuted
+                    }
+
+                    HoverHandler { id: clearNameHover }
+                    TapHandler {
+                        onTapped: {
+                            nameField.text = ""
+                            nameField.forceActiveFocus()
+                        }
+                    }
+                }
+
+                // Enter key shortcut hint
+                Rectangle {
+                    visible: nameField.text.trim().length > 0
+                    radius: 4
+                    implicitWidth: 22
+                    implicitHeight: 20
+                    color: Theme.accentBlueBg
+                    border.color: Theme.accentBlueBorder
+                    border.width: 1
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "↵"
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: Theme.accentBlue
+                    }
                 }
             }
         }
     }
 
-    // ── Category ──────────────────────────────────────────────────────────────
+    // ── Category (Interactive Visual Selector Cards) ──────────────────────────
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 6
@@ -87,34 +188,112 @@ ColumnLayout {
             font.bold: true
         }
 
-        ComboBox {
-            id: categoryCombo
+        RowLayout {
             Layout.fillWidth: true
-            implicitHeight: 42
-            leftPadding: 14
-            rightPadding: 14
-            model: ["Work", "Learning", "Personal"]
-            Material.accent: Theme.accentBlue
-            font.pixelSize: 13
+            spacing: 8
 
-            contentItem: Text {
-                leftPadding: 4
-                text: categoryCombo.displayText
-                font: categoryCombo.font
-                color: Theme.textPrimary
-                verticalAlignment: Text.AlignVCenter
+            // Work
+            Rectangle {
+                id: catWork
+                Layout.fillWidth: true
+                implicitHeight: 38
+                radius: 8
+                readonly property bool isSelected: formRoot.selectedCategory === "Work"
+
+                color: isSelected 
+                       ? Theme.accentBlueBg 
+                       : (workHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
+                border.width: isSelected ? 2 : 1
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 5
+                    Text { text: "💼"; font.pixelSize: 12 }
+                    Text {
+                        text: "Work"
+                        font.pixelSize: 12
+                        font.bold: catWork.isSelected
+                        color: catWork.isSelected ? Theme.accentBlue : Theme.textPrimary
+                    }
+                }
+
+                HoverHandler { id: workHover }
+                TapHandler { onTapped: formRoot.selectedCategory = "Work" }
             }
 
-            background: Rectangle {
-                radius: 6
-                color: Theme.surfaceInput
-                border.color: categoryCombo.activeFocus ? Theme.borderFocus : Theme.borderDefault
-                border.width: 1
+            // Learning
+            Rectangle {
+                id: catLearn
+                Layout.fillWidth: true
+                implicitHeight: 38
+                radius: 8
+                readonly property bool isSelected: formRoot.selectedCategory === "Learning"
+
+                color: isSelected 
+                       ? Theme.accentAmberBg 
+                       : (learnHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                border.color: isSelected ? Theme.accentAmber : Theme.borderDefault
+                border.width: isSelected ? 2 : 1
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 5
+                    Text { text: "📚"; font.pixelSize: 12 }
+                    Text {
+                        text: "Learning"
+                        font.pixelSize: 12
+                        font.bold: catLearn.isSelected
+                        color: catLearn.isSelected ? Theme.accentAmber : Theme.textPrimary
+                    }
+                }
+
+                HoverHandler { id: learnHover }
+                TapHandler { onTapped: formRoot.selectedCategory = "Learning" }
+            }
+
+            // Personal
+            Rectangle {
+                id: catPers
+                Layout.fillWidth: true
+                implicitHeight: 38
+                radius: 8
+                readonly property bool isSelected: formRoot.selectedCategory === "Personal"
+
+                color: isSelected 
+                       ? Theme.accentGreenBg 
+                       : (persHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                border.color: isSelected ? Theme.accentGreen : Theme.borderDefault
+                border.width: isSelected ? 2 : 1
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 5
+                    Text { text: "🏃"; font.pixelSize: 12 }
+                    Text {
+                        text: "Personal"
+                        font.pixelSize: 12
+                        font.bold: catPers.isSelected
+                        color: catPers.isSelected ? Theme.accentGreen : Theme.textPrimary
+                    }
+                }
+
+                HoverHandler { id: persHover }
+                TapHandler { onTapped: formRoot.selectedCategory = "Personal" }
             }
         }
     }
 
-    // ── Duration with 1-Click Quick Duration Pills ─────────────────────────────
+    // ── Duration with 1-Click Quick Pills & Stepper ────────────────────────────
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -129,31 +308,32 @@ ColumnLayout {
             }
             Item { Layout.fillWidth: true }
             Text {
-                text: durationSpinBox.value + " min"
+                text: durationSpinBox.value + " min  (" + (durationSpinBox.value / 60).toFixed(1) + " hrs)"
                 color: Theme.accentBlue
                 font.pixelSize: 12
                 font.bold: true
             }
         }
 
-        // Quick Preset Pills: 15m, 30m, 45m, 60m
+        // Quick Preset Pills: 15m, 30m, 45m, 60m, 90m
         RowLayout {
             Layout.fillWidth: true
             spacing: 6
 
             Repeater {
-                model: [15, 30, 45, 60]
+                model: [15, 30, 45, 60, 90]
                 delegate: Rectangle {
                     id: pill
                     Layout.fillWidth: true
-                    implicitHeight: 28
+                    implicitHeight: 30
                     radius: 6
                     readonly property bool isSelected: durationSpinBox.value === modelData
                     color: isSelected ? Theme.accentBlueBg : (pillHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
                     border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
-                    border.width: 1
+                    border.width: isSelected ? 2 : 1
 
                     Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
 
                     Text {
                         anchors.centerIn: parent
@@ -171,35 +351,90 @@ ColumnLayout {
             }
         }
 
-        // Fine-tuning SpinBox
-        SpinBox {
-            id: durationSpinBox
+        // Fine-tuning Stepper with [-] and [+] Buttons
+        RowLayout {
             Layout.fillWidth: true
-            implicitHeight: 38
-            from: 5
-            to: 480
-            value: 30
-            stepSize: 5
-            editable: true
-            Material.accent: Theme.accentBlue
-            font.pixelSize: 13
+            spacing: 8
 
-            contentItem: TextInput {
-                text: durationSpinBox.value.toString()
-                font: durationSpinBox.font
-                color: Theme.textPrimary
-                horizontalAlignment: TextInput.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
-                readOnly: !durationSpinBox.editable
-                validator: durationSpinBox.validator
-                inputMethodHints: Qt.ImhFormattedNumbersOnly
+            // Decrement Button
+            Rectangle {
+                implicitWidth: 42
+                implicitHeight: 38
+                radius: 6
+                color: decHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput
+                border.color: Theme.borderDefault
+                border.width: 1
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "− 5m"
+                    font.pixelSize: 12
+                    font.bold: true
+                    color: Theme.textPrimary
+                }
+
+                HoverHandler { id: decHover }
+                TapHandler {
+                    onTapped: {
+                        if (durationSpinBox.value >= 10) durationSpinBox.value -= 5
+                    }
+                }
             }
 
-            background: Rectangle {
+            // Central SpinBox display
+            SpinBox {
+                id: durationSpinBox
+                Layout.fillWidth: true
+                implicitHeight: 38
+                from: 5
+                to: 480
+                value: 30
+                stepSize: 5
+                editable: true
+                font.pixelSize: 13
+
+                contentItem: TextInput {
+                    text: durationSpinBox.value.toString()
+                    font: durationSpinBox.font
+                    color: Theme.textPrimary
+                    horizontalAlignment: TextInput.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    readOnly: !durationSpinBox.editable
+                    validator: durationSpinBox.validator
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                }
+
+                background: Rectangle {
+                    radius: 6
+                    color: Theme.surfaceInput
+                    border.color: durationSpinBox.activeFocus ? Theme.borderFocus : Theme.borderDefault
+                    border.width: 1
+                }
+            }
+
+            // Increment Button
+            Rectangle {
+                implicitWidth: 42
+                implicitHeight: 38
                 radius: 6
-                color: Theme.surfaceInput
-                border.color: durationSpinBox.activeFocus ? Theme.borderFocus : Theme.borderDefault
+                color: incHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput
+                border.color: Theme.borderDefault
                 border.width: 1
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "+ 5m"
+                    font.pixelSize: 12
+                    font.bold: true
+                    color: Theme.textPrimary
+                }
+
+                HoverHandler { id: incHover }
+                TapHandler {
+                    onTapped: {
+                        if (durationSpinBox.value <= 475) durationSpinBox.value += 5
+                    }
+                }
             }
         }
     }
@@ -208,35 +443,47 @@ ColumnLayout {
     Button {
         id: addBtn
         Layout.fillWidth: true
-        Layout.topMargin: 8
-        implicitHeight: 44
-        text: "+ Add Activity"
+        Layout.topMargin: 6
+        implicitHeight: 46
+        text: "+ Log Activity"
         font.pixelSize: 14
         font.bold: true
 
         enabled: nameField.text.trim().length > 0
 
-        contentItem: Text {
-            text: addBtn.text
-            font: addBtn.font
-            color: addBtn.enabled ? "#FFFFFF" : Theme.textMuted
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+        contentItem: RowLayout {
+            anchors.centerIn: parent
+            spacing: 6
+            Text {
+                text: addBtn.text
+                font: addBtn.font
+                color: addBtn.enabled ? "#FFFFFF" : Theme.textMuted
+            }
+            Text {
+                text: "↵"
+                font.pixelSize: 13
+                font.bold: true
+                color: addBtn.enabled ? "#BAE6FD" : Theme.textMuted
+                visible: addBtn.enabled
+            }
         }
 
         background: Rectangle {
-            radius: 6
-            color: addBtn.enabled ? (addBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : Theme.accentBlue) : Theme.surfaceBadge
+            radius: 8
+            color: addBtn.enabled 
+                   ? (addBtn.down ? Qt.darker(Theme.accentBlue, 1.2) : (btnHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue)) 
+                   : Theme.surfaceBadge
             border.color: addBtn.enabled ? Theme.accentBlueBorder : Theme.borderDefault
             border.width: 1
 
+            HoverHandler { id: btnHover }
             Behavior on color { ColorAnimation { duration: 120 } }
         }
 
         onClicked: {
             activityService.addActivity(
                 nameField.text.trim(),
-                categoryCombo.currentText,
+                formRoot.selectedCategory,
                 durationSpinBox.value
             )
             nameField.text = ""

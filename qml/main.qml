@@ -255,46 +255,77 @@ ApplicationWindow {
 
                         // Live Instant Search Box
                         Rectangle {
-                            implicitWidth: 190
-                            implicitHeight: 28
-                            radius: 14
-                            color: Theme.surfaceInput
-                            border.color: searchInput.activeFocus ? Theme.borderFocus : Theme.borderDefault
-                            border.width: 1
+                            implicitWidth: 220
+                            implicitHeight: 32
+                            radius: 8
+                            color: searchInput.activeFocus ? (Theme.isDark ? "#121A28" : "#F8FAFC") : Theme.surfaceInput
+                            border.color: searchInput.activeFocus ? Theme.accentBlue : Theme.borderDefault
+                            border.width: searchInput.activeFocus ? 2 : 1
+
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on border.color { ColorAnimation { duration: 150 } }
 
                             RowLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 8
+                                anchors.leftMargin: 10
                                 anchors.rightMargin: 8
-                                spacing: 4
+                                spacing: 6
 
                                 Text {
                                     text: "🔍"
-                                    font.pixelSize: 11
-                                    color: Theme.textMuted
+                                    font.pixelSize: 12
+                                    opacity: searchInput.activeFocus ? 1.0 : 0.6
                                 }
 
-                                TextField {
-                                    id: searchInput
+                                Item {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
-                                    placeholderText: "Search..."
-                                    placeholderTextColor: Theme.textMuted
-                                    color: Theme.textPrimary
-                                    font.pixelSize: 11
-                                    background: null
-                                    verticalAlignment: TextInput.AlignVCenter
-                                    selectByMouse: true
-                                    onTextChanged: root.activeSearchQuery = text
+
+                                    Text {
+                                        anchors.left: parent.left
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: "Search activities... (Ctrl+F)"
+                                        color: Theme.textMuted
+                                        font.pixelSize: 12
+                                        visible: searchInput.text.length === 0
+                                        opacity: searchInput.activeFocus ? 0.35 : 0.75
+                                        Behavior on opacity { NumberAnimation { duration: 120 } }
+                                    }
+
+                                    TextField {
+                                        id: searchInput
+                                        anchors.fill: parent
+                                        verticalAlignment: TextInput.AlignVCenter
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 12
+                                        background: null
+                                        placeholderText: ""
+                                        selectByMouse: true
+                                        onTextChanged: root.activeSearchQuery = text
+                                    }
                                 }
 
-                                Text {
+                                Rectangle {
                                     visible: searchInput.text.length > 0
-                                    text: "✕"
-                                    font.pixelSize: 10
-                                    color: Theme.textMuted
+                                    implicitWidth: 18
+                                    implicitHeight: 18
+                                    radius: 9
+                                    color: searchClearHover.hovered ? Theme.surfaceCardHover : "transparent"
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "✕"
+                                        font.pixelSize: 10
+                                        font.bold: true
+                                        color: Theme.textMuted
+                                    }
+
+                                    HoverHandler { id: searchClearHover }
                                     TapHandler {
-                                        onTapped: searchInput.text = ""
+                                        onTapped: {
+                                            searchInput.text = ""
+                                            searchInput.forceActiveFocus()
+                                        }
                                     }
                                 }
                             }

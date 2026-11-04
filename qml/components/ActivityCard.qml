@@ -8,22 +8,23 @@ import ActivityTracker 1.0
 Rectangle {
     id: card
 
-    required property string activityName
-    required property string activityCategory
-    required property int    activityDuration
-    required property bool   activityDone
-    required property int    activityIndex
+    // Required properties match the exact C++ ActivityListModel roleNames
+    required property string name
+    required property string category
+    required property int    durationMinutes
+    required property bool   done
+    required property int    index
 
     signal removeRequested()
     signal completeRequested()
 
     height: 76
-    radius: 8
-    color: card.activityDone 
+    radius: 10
+    color: card.done 
            ? (Theme.isDark ? "#0E1C14" : "#F0FDF4")
            : (cardHover.hovered ? Theme.surfaceCardHover : Theme.surfaceCard)
 
-    border.color: card.activityDone 
+    border.color: card.done 
                   ? Theme.accentGreenBorder
                   : (cardHover.hovered ? Theme.accentBlue : Theme.borderDefault)
     border.width: 1
@@ -37,17 +38,18 @@ Rectangle {
     Rectangle {
         id: accentStrip
         width: 4
-        height: card.height - 18
+        height: card.height - 20
         radius: 2
         anchors.left: card.left
-        anchors.leftMargin: 6
+        anchors.leftMargin: 8
         anchors.verticalCenter: card.verticalCenter
         color: {
-            switch (card.activityCategory) {
-            case "Work":     return Theme.accentBlue
-            case "Learning": return Theme.accentAmber
-            case "Personal": return Theme.accentGreen
-            default:         return Theme.textSecondary
+            if (card.done) return Theme.accentGreen;
+            switch (card.category) {
+            case "Work":     return Theme.accentBlue;
+            case "Learning": return Theme.accentAmber;
+            case "Personal": return Theme.accentGreen;
+            default:         return Theme.textSecondary;
             }
         }
     }
@@ -55,7 +57,7 @@ Rectangle {
     RowLayout {
         anchors {
             fill: parent
-            leftMargin: 18
+            leftMargin: 20
             rightMargin: 16
             topMargin: 8
             bottomMargin: 8
@@ -65,11 +67,11 @@ Rectangle {
         // ── Done checkbox ─────────────────────────────────────────────────────
         CheckBox {
             id: doneBox
-            checked: card.activityDone
-            enabled: !card.activityDone
+            checked: card.done
+            enabled: !card.done
             Material.accent: Theme.accentGreen
             onCheckedChanged: {
-                if (checked && !card.activityDone) {
+                if (checked && !card.done) {
                     card.completeRequested()
                 }
             }
@@ -83,12 +85,12 @@ Rectangle {
             // Activity Name
             Text {
                 Layout.fillWidth: true
-                text: card.activityName.length > 0 ? card.activityName : "(Untitled Activity)"
-                color: card.activityDone ? Theme.textMuted : Theme.textPrimary
+                text: card.name && card.name.length > 0 ? card.name : "(Untitled Activity)"
+                color: card.done ? Theme.textMuted : Theme.textPrimary
                 font.pixelSize: 14
                 font.bold: true
                 elide: Text.ElideRight
-                font.strikeout: card.activityDone
+                font.strikeout: card.done
             }
 
             // Badges row: Category pill + Duration pill
@@ -98,38 +100,57 @@ Rectangle {
                 // Category pill
                 Rectangle {
                     radius: 10
-                    implicitWidth: catText.implicitWidth + 14
-                    implicitHeight: 20
+                    implicitWidth: catRow.implicitWidth + 16
+                    implicitHeight: 22
                     color: {
-                        switch (card.activityCategory) {
-                        case "Work":     return Theme.accentBlueBg
-                        case "Learning": return Theme.accentAmberBg
-                        case "Personal": return Theme.accentGreenBg
-                        default:         return Theme.surfaceBadge
+                        if (card.done) return Theme.accentGreenBg;
+                        switch (card.category) {
+                        case "Work":     return Theme.accentBlueBg;
+                        case "Learning": return Theme.accentAmberBg;
+                        case "Personal": return Theme.accentGreenBg;
+                        default:         return Theme.surfaceBadge;
                         }
                     }
                     border.color: {
-                        switch (card.activityCategory) {
-                        case "Work":     return Theme.accentBlueBorder
-                        case "Learning": return Theme.accentAmberBorder
-                        case "Personal": return Theme.accentGreenBorder
-                        default:         return Theme.borderDefault
+                        if (card.done) return Theme.accentGreenBorder;
+                        switch (card.category) {
+                        case "Work":     return Theme.accentBlueBorder;
+                        case "Learning": return Theme.accentAmberBorder;
+                        case "Personal": return Theme.accentGreenBorder;
+                        default:         return Theme.borderDefault;
                         }
                     }
                     border.width: 1
 
-                    Text {
-                        id: catText
+                    Row {
+                        id: catRow
                         anchors.centerIn: parent
-                        text: card.activityCategory.length > 0 ? card.activityCategory : "General"
-                        font.pixelSize: 11
-                        font.bold: true
-                        color: {
-                            switch (card.activityCategory) {
-                            case "Work":     return Theme.accentBlue
-                            case "Learning": return Theme.accentAmber
-                            case "Personal": return Theme.accentGreen
-                            default:         return Theme.textSecondary
+                        spacing: 4
+
+                        Text {
+                            text: {
+                                switch (card.category) {
+                                case "Work":     return "💼";
+                                case "Learning": return "📚";
+                                case "Personal": return "🏃";
+                                default:         return "📌";
+                                }
+                            }
+                            font.pixelSize: 11
+                        }
+
+                        Text {
+                            text: card.category && card.category.length > 0 ? card.category : "General"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: {
+                                if (card.done) return Theme.accentGreen;
+                                switch (card.category) {
+                                case "Work":     return Theme.accentBlue;
+                                case "Learning": return Theme.accentAmber;
+                                case "Personal": return Theme.accentGreen;
+                                default:         return Theme.textSecondary;
+                                }
                             }
                         }
                     }
@@ -138,8 +159,8 @@ Rectangle {
                 // Duration pill
                 Rectangle {
                     radius: 10
-                    implicitWidth: durText.implicitWidth + 14
-                    implicitHeight: 20
+                    implicitWidth: durText.implicitWidth + 16
+                    implicitHeight: 22
                     color: Theme.surfaceBadge
                     border.color: Theme.borderDefault
                     border.width: 1
@@ -147,10 +168,30 @@ Rectangle {
                     Text {
                         id: durText
                         anchors.centerIn: parent
-                        text: "⏱ " + card.activityDuration + " min"
+                        text: "⏱ " + card.durationMinutes + " min"
                         font.pixelSize: 11
                         color: Theme.textSecondary
                         font.bold: true
+                    }
+                }
+
+                // Status pill (Completed badge if done)
+                Rectangle {
+                    visible: card.done
+                    radius: 10
+                    implicitWidth: statusText.implicitWidth + 14
+                    implicitHeight: 22
+                    color: Theme.accentGreenBg
+                    border.color: Theme.accentGreenBorder
+                    border.width: 1
+
+                    Text {
+                        id: statusText
+                        anchors.centerIn: parent
+                        text: "✓ Completed"
+                        font.pixelSize: 10
+                        font.bold: true
+                        color: Theme.accentGreen
                     }
                 }
             }
