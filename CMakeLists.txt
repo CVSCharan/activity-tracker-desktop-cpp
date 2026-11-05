@@ -184,6 +184,8 @@ add_executable(tst_ActivityModel
 
 target_include_directories(tst_ActivityModel PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/tst_ActivityModel_autogen/include
 )
 
 target_link_libraries(tst_ActivityModel PRIVATE
