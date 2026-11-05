@@ -32,6 +32,7 @@ ApplicationWindow {
         property string sidebarDock: "left"         // "left" or "right"
         property bool sidebarCollapsed: false       // true = 56px compact rail, false = full deck
         property string activeTimeframe: "All Time" // Default: "All Time" so all activities show on launch
+        property bool hasSeenTour: false            // Auto-launches guided tour on first device run
     }
 
     Component.onCompleted: {
@@ -42,6 +43,7 @@ ApplicationWindow {
         if (appSettings.isMaximized) {
             root.showMaximized()
         }
+        firstRunTourTimer.start()
     }
 
     onClosing: {
@@ -193,6 +195,7 @@ ApplicationWindow {
 
         // ── Top Navigation / Header Bar ───────────────────────────────────────
         Rectangle {
+            id: topNavigationHeader
             Layout.fillWidth: true
             Layout.preferredHeight: 60
             color: Theme.surfaceNav
@@ -506,6 +509,46 @@ ApplicationWindow {
                             font.bold: true
                             font.pixelSize: 12
                         }
+                    }
+                }
+
+                // ── Interactive UI Tour Button ──────────────────────────────
+                Rectangle {
+                    id: tourBtn
+                    radius: 14
+                    color: tourBtnHover.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
+                    border.color: tourBtnHover.hovered ? Theme.accentBlue : Theme.borderDefault
+                    border.width: 1
+                    implicitWidth: 76
+                    implicitHeight: 28
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 5
+                        Components.LucideIcon {
+                            Layout.alignment: Qt.AlignVCenter
+                            name: "sparkles"
+                            size: 12
+                            color: Theme.accentBlue
+                        }
+                        Text {
+                            Layout.alignment: Qt.AlignVCenter
+                            text: "Tour"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: tourBtnHover.hovered ? Theme.accentBlue : Theme.textPrimary
+                        }
+                    }
+
+                    ToolTip.visible: tourBtnHover.hovered
+                    ToolTip.text: "Start Interactive Product Tour"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: tourBtnHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: guidedTour.startTour()
                     }
                 }
 
@@ -907,12 +950,14 @@ ApplicationWindow {
 
                     // ── 1. Top Analytics Stats Cards ──────────────────────────
                     Components.StatsDashboard {
+                        id: statsDashboardComponent
                         Layout.fillWidth: true
                         timeframe: root.activeTimeframe
                     }
 
                     // ── 2. Interactive Filter & Search Toolbar ────────────────
                     RowLayout {
+                        id: filterToolbarRow
                         Layout.fillWidth: true
                         Layout.topMargin: 4
                         spacing: 10
@@ -1217,6 +1262,88 @@ ApplicationWindow {
             id: refToastTimer
             interval: 2500
             onTriggered: refreshToast.visible = false
+        }
+    }
+
+    // ── First-Run Auto Tour Timer (Waits 500ms after login/mount) ─────────────
+    Timer {
+        id: firstRunTourTimer
+        interval: 500
+        repeat: false
+        onTriggered: {
+            if (authService.isLoggedIn && !appSettings.hasSeenTour && !authService.hasSeenTour) {
+                guidedTour.startTour()
+            }
+        }
+    }
+
+    Connections {
+        target: authService
+        function onLoginSuccess() {
+            if (!appSettings.hasSeenTour && !authService.hasSeenTour) {
+                firstRunTourTimer.start()
+            }
+        }
+        function onSessionRevoked(reason) {
+            sessionRevokedDialog.dialogMessage = reason
+            sessionRevokedDialog.open()
+        }
+    }
+
+    // ── Remote Session Revocation Dialog ──────────────────────────────────────
+    Dialog {
+        id: sessionRevokedDialog
+        property string dialogMessage: "Your session was remotely revoked."
+        title: "Session Terminated"
+        modal: true
+        anchors.centerIn: parent
+        width: 360
+        standardButtons: Dialog.Ok
+
+        ColumnLayout {
+            spacing: 12
+            RowLayout {
+                spacing: 10
+                Components.LucideIcon {
+                    name: "log-out"
+                    size: 20
+                    color: Theme.accentRed
+                }
+                Text {
+                    text: "Logged Out from Remote Device"
+                    font.bold: true
+                    font.pixelSize: 14
+                    color: Theme.textPrimary
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: sessionRevokedDialog.dialogMessage
+                font.pixelSize: 12
+                color: Theme.textSecondary
+                wrapMode: Text.WordWrap
+            }
+        }
+    }
+
+    // ── Interactive UI Guided Tour ────────────────────────────────────────────
+    Components.GuidedTour {
+        id: guidedTour
+        stepTargets: [
+            sidebarContainer,          // Step 1: Floating Task Deck
+            statsDashboardComponent,   // Step 2: Executive KPI Dashboard
+            filterToolbarRow,          // Step 3: Instant Filters & Search
+            mainListView,              // Step 4: Interactive Task Lifecycle & Extensions
+            topNavigationHeader        // Step 5: Workstation Customization (Dock/Theme)
+        ]
+
+        onTourCompleted: {
+            appSettings.hasSeenTour = true
+            authService.completeTour()
+        }
+        onTourSkipped: {
+            appSettings.hasSeenTour = true
+            authService.completeTour()
         }
     }
 }

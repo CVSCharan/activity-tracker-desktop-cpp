@@ -2,7 +2,10 @@
 #include <QSignalSpy>
 #include "model/Activity.h"
 #include "model/ActivityListModel.h"
+#include "model/Session.h"
+#include "model/User.h"
 #include "service/ActivityService.h"
+#include "service/AuthService.h"
 #include "persistence/JsonStore.h"
 
 class TestActivityTracker : public QObject
@@ -20,6 +23,9 @@ private slots:
     void testServiceRefresh();
     void testTaskLifecycleAndExtension();
     void testJsonStoreSaveAndLoad();
+    void testSessionSecurityAndHashing();
+    void testSessionRemoteRevocation();
+    void testPreferencesSyncAndTour();
 };
 
 void TestActivityTracker::initTestCase()
@@ -184,6 +190,66 @@ void TestActivityTracker::testJsonStoreSaveAndLoad()
     QCOMPARE(loaded.size(), 2);
     QCOMPARE(loaded[0].name, QString("Persistent 1"));
     QCOMPARE(loaded[1].name, QString("Persistent 2"));
+}
+
+void TestActivityTracker::testSessionSecurityAndHashing()
+{
+    // Generate token
+    const QString rawToken = UserSession::generateToken();
+    QVERIFY(!rawToken.isEmpty());
+
+    // Hash token
+    const QString hash1 = UserSession::hashToken(rawToken);
+    const QString hash2 = UserSession::hashToken(rawToken);
+    QCOMPARE(hash1, hash2);
+    QCOMPARE(hash1.length(), 64); // SHA-256 hex string length
+
+    // Create session
+    const UserSession session = UserSession::create("usr_test_01", rawToken, "Test Machine", "windows", 30);
+    QVERIFY(session.isValid());
+    QCOMPARE(session.isRevoked, false);
+    QVERIFY(session.expiresAt > QDateTime::currentDateTime());
+    QCOMPARE(session.tokenHash, hash1);
+}
+
+void TestActivityTracker::testSessionRemoteRevocation()
+{
+    AuthService auth;
+    auth.loginDemoUser();
+    QVERIFY(auth.isLoggedIn());
+
+    const QString currentSessId = auth.currentSessionId();
+    QVERIFY(!currentSessId.isEmpty());
+
+    // Remote revoke
+    QSignalSpy revokeSpy(&auth, &AuthService::sessionRevoked);
+    auth.revokeSession(currentSessId);
+
+    // Assert session was terminated
+    QCOMPARE(auth.isLoggedIn(), false);
+    QCOMPARE(revokeSpy.count(), 1);
+}
+
+void TestActivityTracker::testPreferencesSyncAndTour()
+{
+    AuthService auth;
+    auth.loginDemoUser();
+
+    // Verify initial tour state
+    auth.resetTour();
+    QCOMPARE(auth.hasSeenTour(), false);
+
+    // Complete tour
+    QSignalSpy prefSpy(&auth, &AuthService::preferencesChanged);
+    auth.completeTour();
+    QCOMPARE(auth.hasSeenTour(), true);
+    QCOMPARE(prefSpy.count(), 1);
+
+    // Sync preferences across devices
+    auth.syncPreferences("dark", "right", true, "Today", true);
+    QCOMPARE(auth.preferences().sidebarDock, QString("right"));
+    QCOMPARE(auth.preferences().sidebarCollapsed, true);
+    QCOMPARE(auth.preferences().hasSeenTour, true);
 }
 
 QTEST_MAIN(TestActivityTracker)

@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QSysInfo>
 #include <QDebug>
 
 static const QString SALT_PREFIX = "cvs_salt_";
@@ -14,7 +15,7 @@ static const QString SALT_PREFIX = "cvs_salt_";
 AuthService::AuthService(QObject *parent)
     : QObject(parent)
 {
-    loadLocalUsers();
+    loadLocalData();
     restoreSavedSession();
 }
 
@@ -24,12 +25,67 @@ QString AuthService::hashPassword(const QString &password)
     return QString(QCryptographicHash::hash(data, QCryptographicHash::Sha256).toHex());
 }
 
+QString AuthService::sessionDeviceName() const
+{
+#if defined(Q_OS_WIN)
+    return QString("%1 (Windows %2)").arg(QSysInfo::machineHostName(), QSysInfo::currentCpuArchitecture());
+#elif defined(Q_OS_MACOS)
+    return QString("%1 (macOS %2)").arg(QSysInfo::machineHostName(), QSysInfo::currentCpuArchitecture());
+#else
+    return QString("%1 (%2)").arg(QSysInfo::machineHostName(), QSysInfo::prettyProductName());
+#endif
+}
+
 void AuthService::clearError()
 {
     if (!m_errorMessage.isEmpty()) {
         m_errorMessage.clear();
         Q_EMIT errorChanged();
     }
+}
+
+void AuthService::setHasSeenTour(bool seen)
+{
+    if (m_preferences.hasSeenTour != seen) {
+        m_preferences.hasSeenTour = seen;
+        saveLocalData();
+        Q_EMIT preferencesChanged();
+    }
+}
+
+int AuthService::activeSessionsCount() const
+{
+    int count = 0;
+    for (const UserSession &s : m_sessions) {
+        if (s.userId == m_currentUser.id && s.isValid()) {
+            count++;
+        }
+    }
+    return count;
+}
+
+UserSession AuthService::createSessionForUser(const QString &userId)
+{
+    m_bearerToken = UserSession::generateToken();
+    const QString platform = 
+#if defined(Q_OS_WIN)
+        "windows";
+#elif defined(Q_OS_MACOS)
+        "macos";
+#else
+        "linux";
+#endif
+
+    const UserSession session = UserSession::create(
+        userId,
+        m_bearerToken,
+        sessionDeviceName(),
+        platform,
+        30 // 30-day valid session
+    );
+    m_sessions.append(session);
+    m_currentSession = session;
+    return session;
 }
 
 bool AuthService::login(const QString &email, const QString &password, bool rememberMe)
@@ -51,17 +107,39 @@ bool AuthService::login(const QString &email, const QString &password, bool reme
                 m_currentUser = u;
                 m_isLoggedIn = true;
 
+                // Create cryptographic session
+                createSessionForUser(u.id);
+
+                // Load or initialize user preferences
+                bool foundPrefs = false;
+                for (const UserPreferences &p : m_userPreferencesList) {
+                    if (p.userId == u.id) {
+                        m_preferences = p;
+                        foundPrefs = true;
+                        break;
+                    }
+                }
+                if (!foundPrefs) {
+                    m_preferences = UserPreferences{};
+                    m_preferences.userId = u.id;
+                    m_userPreferencesList.append(m_preferences);
+                }
+
                 QSettings settings;
                 settings.setValue("auth/rememberMe", rememberMe);
                 if (rememberMe) {
+                    settings.setValue("auth/bearerToken", m_bearerToken);
                     settings.setValue("auth/savedUserId", u.id);
-                    settings.setValue("auth/savedEmail", u.email);
                 } else {
+                    settings.remove("auth/bearerToken");
                     settings.remove("auth/savedUserId");
-                    settings.remove("auth/savedEmail");
                 }
 
+                saveLocalData();
                 Q_EMIT authStateChanged();
+                Q_EMIT sessionChanged();
+                Q_EMIT sessionsChanged();
+                Q_EMIT preferencesChanged();
                 Q_EMIT loginSuccess();
                 return true;
             } else {
@@ -107,20 +185,17 @@ bool AuthService::registerUser(const QString &name, const QString &email, const 
         }
     }
 
-    const User newUser = User::create(cleanName, cleanEmail, hashPassword(password), dailyGoalMinutes > 0 ? dailyGoalMinutes : 240);
+    const User newUser = User::create(cleanName, cleanEmail, hashPassword(password), dailyGoalMinutes);
     m_users.append(newUser);
-    saveLocalUsers();
 
-    // Automatically log in the new user
-    m_currentUser = newUser;
-    m_isLoggedIn = true;
+    // Initialize cross-device preferences
+    UserPreferences prefs;
+    prefs.userId = newUser.id;
+    prefs.dailyGoalMinutes = dailyGoalMinutes;
+    prefs.hasSeenTour = false; // New registration starts with fresh UI Tour!
+    m_userPreferencesList.append(prefs);
 
-    QSettings settings;
-    settings.setValue("auth/rememberMe", true);
-    settings.setValue("auth/savedUserId", newUser.id);
-    settings.setValue("auth/savedEmail", newUser.email);
-
-    Q_EMIT authStateChanged();
+    saveLocalData();
     Q_EMIT registrationSuccess();
     return true;
 }
@@ -131,7 +206,7 @@ bool AuthService::resetPassword(const QString &email, const QString &newPassword
     const QString cleanEmail = email.trimmed().toLower();
 
     if (cleanEmail.isEmpty()) {
-        m_errorMessage = "Please enter your registered email address.";
+        m_errorMessage = "Please enter your email address.";
         Q_EMIT errorChanged();
         return false;
     }
@@ -144,8 +219,17 @@ bool AuthService::resetPassword(const QString &email, const QString &newPassword
     for (int i = 0; i < m_users.size(); ++i) {
         if (m_users[i].email.toLower() == cleanEmail) {
             m_users[i].passwordHash = hashPassword(newPassword);
-            saveLocalUsers();
+
+            // Invalidate all existing active sessions on password reset for security
+            for (UserSession &s : m_sessions) {
+                if (s.userId == m_users[i].id) {
+                    s.isRevoked = true;
+                }
+            }
+
+            saveLocalData();
             Q_EMIT resetPasswordSuccess();
+            Q_EMIT sessionsChanged();
             return true;
         }
     }
@@ -162,13 +246,26 @@ void AuthService::loginDemoUser()
         if (u.email == "charan@cvs.com") {
             m_currentUser = u;
             m_isLoggedIn = true;
+            createSessionForUser(u.id);
+
+            for (const UserPreferences &p : m_userPreferencesList) {
+                if (p.userId == u.id) {
+                    m_preferences = p;
+                    break;
+                }
+            }
+
+            saveLocalData();
             Q_EMIT authStateChanged();
+            Q_EMIT sessionChanged();
+            Q_EMIT sessionsChanged();
+            Q_EMIT preferencesChanged();
             Q_EMIT loginSuccess();
             return;
         }
     }
 
-    // If demo user wasn't present, create and log in
+    // Provision default demo user
     const User demoUser{
         "usr_charan_demo_01",
         "Charan Developer",
@@ -178,97 +275,267 @@ void AuthService::loginDemoUser()
         QDateTime::currentDateTime()
     };
     m_users.append(demoUser);
-    saveLocalUsers();
+
+    UserPreferences demoPrefs;
+    demoPrefs.userId = demoUser.id;
+    demoPrefs.hasSeenTour = false;
+    m_userPreferencesList.append(demoPrefs);
 
     m_currentUser = demoUser;
+    m_preferences = demoPrefs;
     m_isLoggedIn = true;
+    createSessionForUser(demoUser.id);
+
+    saveLocalData();
     Q_EMIT authStateChanged();
+    Q_EMIT sessionChanged();
+    Q_EMIT sessionsChanged();
+    Q_EMIT preferencesChanged();
     Q_EMIT loginSuccess();
 }
 
 void AuthService::logout()
 {
+    // Revoke current session
+    if (!m_currentSession.id.isEmpty()) {
+        for (UserSession &s : m_sessions) {
+            if (s.id == m_currentSession.id) {
+                s.isRevoked = true;
+                break;
+            }
+        }
+    }
+
     QSettings settings;
+    settings.remove("auth/bearerToken");
     settings.remove("auth/savedUserId");
-    settings.remove("auth/savedEmail");
     settings.setValue("auth/rememberMe", false);
 
     m_currentUser = User{};
+    m_currentSession = UserSession{};
+    m_bearerToken.clear();
     m_isLoggedIn = false;
     clearError();
+
+    saveLocalData();
     Q_EMIT authStateChanged();
+    Q_EMIT sessionChanged();
+    Q_EMIT sessionsChanged();
+}
+
+bool AuthService::validateSession()
+{
+    QSettings settings;
+    const bool rememberMe = settings.value("auth/rememberMe", false).toBool();
+    const QString bearerToken = settings.value("auth/bearerToken").toString();
+
+    if (!rememberMe || bearerToken.isEmpty()) {
+        return false;
+    }
+
+    const QString tokenHash = UserSession::hashToken(bearerToken);
+
+    for (int i = 0; i < m_sessions.size(); ++i) {
+        if (m_sessions[i].tokenHash == tokenHash) {
+            // Check remote revocation
+            if (m_sessions[i].isRevoked) {
+                m_errorMessage = "Your session was remotely revoked or logged out from another device.";
+                logout();
+                Q_EMIT sessionRevoked(m_errorMessage);
+                return false;
+            }
+
+            // Check expiration
+            if (m_sessions[i].expiresAt <= QDateTime::currentDateTime()) {
+                m_errorMessage = "Your session has expired. Please sign in again.";
+                logout();
+                return false;
+            }
+
+            // Session is 100% valid -> restore user context
+            for (const User &u : m_users) {
+                if (u.id == m_sessions[i].userId) {
+                    m_currentUser = u;
+                    m_currentSession = m_sessions[i];
+                    m_currentSession.lastActiveAt = QDateTime::currentDateTime();
+                    m_sessions[i].lastActiveAt = m_currentSession.lastActiveAt;
+                    m_bearerToken = bearerToken;
+                    m_isLoggedIn = true;
+
+                    // Load user preferences
+                    for (const UserPreferences &p : m_userPreferencesList) {
+                        if (p.userId == u.id) {
+                            m_preferences = p;
+                            break;
+                        }
+                    }
+
+                    saveLocalData();
+                    Q_EMIT authStateChanged();
+                    Q_EMIT sessionChanged();
+                    Q_EMIT sessionsChanged();
+                    Q_EMIT preferencesChanged();
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+void AuthService::revokeSession(const QString &sessionId)
+{
+    for (int i = 0; i < m_sessions.size(); ++i) {
+        if (m_sessions[i].id == sessionId) {
+            m_sessions[i].isRevoked = true;
+
+            // If the revoked session is this current machine, trigger logout immediately
+            if (m_currentSession.id == sessionId) {
+                m_errorMessage = "This device's session was revoked.";
+                logout();
+                Q_EMIT sessionRevoked(m_errorMessage);
+            } else {
+                saveLocalData();
+                Q_EMIT sessionsChanged();
+            }
+            return;
+        }
+    }
+}
+
+QVariantList AuthService::activeSessions() const
+{
+    QVariantList list;
+    for (const UserSession &s : m_sessions) {
+        if (s.userId == m_currentUser.id) {
+            QVariantMap map;
+            map["id"]           = s.id;
+            map["deviceName"]   = s.deviceName;
+            map["platform"]     = s.platform;
+            map["lastActiveAt"] = s.lastActiveAt.toString(Qt::ISODate);
+            map["isCurrent"]    = (s.id == m_currentSession.id);
+            map["isValid"]      = s.isValid();
+            list.append(map);
+        }
+    }
+    return list;
+}
+
+void AuthService::completeTour()
+{
+    setHasSeenTour(true);
+}
+
+void AuthService::resetTour()
+{
+    setHasSeenTour(false);
+}
+
+void AuthService::syncPreferences(const QString &theme,
+                                  const QString &sidebarDock,
+                                  bool sidebarCollapsed,
+                                  const QString &activeTimeframe,
+                                  bool hasSeenTour)
+{
+    m_preferences.userId = m_currentUser.id;
+    m_preferences.theme = theme;
+    m_preferences.sidebarDock = sidebarDock;
+    m_preferences.sidebarCollapsed = sidebarCollapsed;
+    m_preferences.activeTimeframe = activeTimeframe;
+    m_preferences.hasSeenTour = hasSeenTour;
+
+    for (int i = 0; i < m_userPreferencesList.size(); ++i) {
+        if (m_userPreferencesList[i].userId == m_currentUser.id) {
+            m_userPreferencesList[i] = m_preferences;
+            saveLocalData();
+            Q_EMIT preferencesChanged();
+            return;
+        }
+    }
+    m_userPreferencesList.append(m_preferences);
+    saveLocalData();
+    Q_EMIT preferencesChanged();
 }
 
 void AuthService::restoreSavedSession()
 {
-    QSettings settings;
-    const bool rememberMe = settings.value("auth/rememberMe", false).toBool();
-    const QString savedUserId = settings.value("auth/savedUserId").toString();
-
-    if (rememberMe && !savedUserId.isEmpty()) {
-        for (const User &u : m_users) {
-            if (u.id == savedUserId) {
-                m_currentUser = u;
-                m_isLoggedIn = true;
-                qInfo() << "AuthService: Restored session for" << u.email;
-                return;
-            }
-        }
-    }
+    validateSession();
 }
 
-void AuthService::loadLocalUsers()
+void AuthService::loadLocalData()
 {
-    m_users.clear();
-
     const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir().mkpath(dir);
-    const QString filePath = dir + "/users.json";
 
-    QFile file(filePath);
-    if (file.exists() && file.open(QIODevice::ReadOnly)) {
-        const QByteArray raw = file.readAll();
-        const QJsonDocument doc = QJsonDocument::fromJson(raw);
+    // 1. Load Users
+    QFile userFile(dir + "/users.json");
+    if (userFile.open(QIODevice::ReadOnly)) {
+        const QJsonDocument doc = QJsonDocument::fromJson(userFile.readAll());
         if (doc.isArray()) {
-            const QJsonArray arr = doc.array();
-            for (const QJsonValue &v : arr) {
-                if (v.isObject()) {
-                    m_users.append(User::fromJson(v.toObject()));
+            m_users.clear();
+            for (const QJsonValue &val : doc.array()) {
+                if (val.isObject()) {
+                    m_users.append(User::fromJson(val.toObject()));
                 }
             }
         }
-        file.close();
     }
 
-    // If no users exist, seed default demo account
-    if (m_users.isEmpty()) {
-        const User seedUser{
-            "usr_charan_demo_01",
-            "Charan Developer",
-            "charan@cvs.com",
-            hashPassword("Password123!"),
-            240,
-            QDateTime::currentDateTime()
-        };
-        m_users.append(seedUser);
-        saveLocalUsers();
+    // 2. Load Sessions
+    QFile sessionFile(dir + "/sessions.json");
+    if (sessionFile.open(QIODevice::ReadOnly)) {
+        const QJsonDocument doc = QJsonDocument::fromJson(sessionFile.readAll());
+        if (doc.isArray()) {
+            m_sessions.clear();
+            for (const QJsonValue &val : doc.array()) {
+                if (val.isObject()) {
+                    m_sessions.append(UserSession::fromJson(val.toObject()));
+                }
+            }
+        }
+    }
+
+    // 3. Load Preferences
+    QFile prefFile(dir + "/preferences.json");
+    if (prefFile.open(QIODevice::ReadOnly)) {
+        const QJsonDocument doc = QJsonDocument::fromJson(prefFile.readAll());
+        if (doc.isArray()) {
+            m_userPreferencesList.clear();
+            for (const QJsonValue &val : doc.array()) {
+                if (val.isObject()) {
+                    m_userPreferencesList.append(UserPreferences::fromJson(val.toObject()));
+                }
+            }
+        }
     }
 }
 
-void AuthService::saveLocalUsers()
+void AuthService::saveLocalData()
 {
     const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(dir);
-    const QString filePath = dir + "/users.json";
 
-    QJsonArray arr;
-    for (const User &u : m_users) {
-        arr.append(u.toJson());
+    // 1. Save Users
+    QJsonArray userArray;
+    for (const User &u : m_users) userArray.append(u.toJson());
+    QFile userFile(dir + "/users.json");
+    if (userFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        userFile.write(QJsonDocument(userArray).toJson(QJsonDocument::Indented));
     }
 
-    QFile file(filePath);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        file.write(QJsonDocument(arr).toJson(QJsonDocument::Indented));
-        file.close();
+    // 2. Save Sessions
+    QJsonArray sessionArray;
+    for (const UserSession &s : m_sessions) sessionArray.append(s.toJson());
+    QFile sessionFile(dir + "/sessions.json");
+    if (sessionFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        sessionFile.write(QJsonDocument(sessionArray).toJson(QJsonDocument::Indented));
+    }
+
+    // 3. Save Preferences
+    QJsonArray prefArray;
+    for (const UserPreferences &p : m_userPreferencesList) prefArray.append(p.toJson());
+    QFile prefFile(dir + "/preferences.json");
+    if (prefFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        prefFile.write(QJsonDocument(prefArray).toJson(QJsonDocument::Indented));
     }
 }

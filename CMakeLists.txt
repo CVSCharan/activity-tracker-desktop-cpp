@@ -55,6 +55,7 @@ qt_policy(SET QTP0004 NEW)
 set(SOURCES
     src/main.cpp
     src/model/User.h
+    src/model/Session.h
     src/model/Activity.h
     src/model/Activity.cpp
     src/model/ActivityListModel.h
@@ -82,6 +83,7 @@ set(QML_FILES
     qml/components/AddActivityForm.qml
     qml/components/SummaryBar.qml
     qml/components/StatsDashboard.qml
+    qml/components/GuidedTour.qml
 )
 
 # Register Theme.qml as a QML singleton
@@ -171,10 +173,14 @@ enable_testing()
 
 add_executable(tst_ActivityModel
     tests/tst_ActivityModel.cpp
+    src/model/User.h
+    src/model/Session.h
     src/model/Activity.h
     src/model/Activity.cpp
     src/model/ActivityListModel.h
     src/model/ActivityListModel.cpp
+    src/service/AuthService.h
+    src/service/AuthService.cpp
     src/service/ActivityService.h
     src/service/ActivityService.cpp
     src/persistence/JsonStore.h
