@@ -6,6 +6,8 @@ import ActivityTracker 1.0
 GridLayout {
     id: statsGrid
 
+    property string timeframe: "Today"
+
     // ── Responsive Breakpoints ────────────────────────────────────────────────
     // Wide display (>800px): 4 cards in 1 row
     // Half-screen snap / Tablet (440px-800px): 2 rows x 2 columns
@@ -219,12 +221,12 @@ GridLayout {
     // ── 4. Logged Today Card ──────────────────────────────────────────────────
     StatCard {
         iconName: "flame"
-        statTitle: "TIME TODAY"
+        statTitle: statsGrid.timeframe === "Today" ? "TIME TODAY" : "TIME TRACKED"
         statValue: activityService.totalDurationToday + " min"
         statSubtitle: formatHours(activityService.totalDurationToday)
         accentColor: Theme.accentPurple
         showProgressBar: false
-        tagText: "Daily Log"
+        tagText: statsGrid.timeframe === "Today" ? "Daily Log" : statsGrid.timeframe
         tagColor: Theme.accentPurple
 
         function formatHours(mins) {

@@ -14,6 +14,7 @@ Rectangle {
     required property int    durationMinutes
     required property bool   done
     required property int    index
+    property var createdAt: null
 
     signal removeRequested()
     signal completeRequested()

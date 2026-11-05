@@ -11,6 +11,7 @@ ListView {
 
     property string filterCategory: "All"
     property string filterText: ""
+    property string filterTimeframe: "Today"
 
     model: activityModel
 
@@ -46,7 +47,24 @@ ListView {
             return cardDelegate.name.toLowerCase().includes(listView.filterText.trim().toLowerCase());
         }
 
-        readonly property bool isVisibleInFilter: matchesCategory && matchesSearch
+        readonly property bool matchesTimeframe: {
+            if (listView.filterTimeframe === "All Time") return true;
+            if (!model.createdAt) return true;
+            const now = new Date();
+            const created = new Date(model.createdAt);
+            if (isNaN(created.getTime())) return true;
+
+            if (listView.filterTimeframe === "Today") {
+                return created.toDateString() === now.toDateString();
+            } else if (listView.filterTimeframe === "Last 7 Days") {
+                return (now - created) <= 7 * 24 * 3600 * 1000;
+            } else if (listView.filterTimeframe === "Last 30 Days") {
+                return (now - created) <= 30 * 24 * 3600 * 1000;
+            }
+            return true;
+        }
+
+        readonly property bool isVisibleInFilter: matchesCategory && matchesSearch && matchesTimeframe
 
         visible: isVisibleInFilter
         height: isVisibleInFilter ? 76 : 0
