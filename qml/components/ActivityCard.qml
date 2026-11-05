@@ -30,10 +30,40 @@ Rectangle {
                   : (cardHover.hovered ? Theme.accentBlue : Theme.borderDefault)
     border.width: 1
 
+    // ── Smooth Hover Lift Animation (like Framer Motion's whileHover) ────────
+    y: cardHover.hovered ? -1.5 : 0
+    Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
     Behavior on color { ColorAnimation { duration: 150 } }
     Behavior on border.color { ColorAnimation { duration: 150 } }
 
     HoverHandler { id: cardHover }
+
+    // Helper: Formats historical timestamps into human-readable labels
+    function formatHistoryDate(created) {
+        if (!created) return "Today"
+        const date = new Date(created)
+        if (isNaN(date.getTime())) return "Today"
+        const now = new Date()
+        const diffMs = now - date
+        const diffDays = Math.floor(diffMs / (86400 * 1000))
+
+        if (date.toDateString() === now.toDateString()) {
+            const h = date.getHours()
+            const m = date.getMinutes()
+            const ampm = h >= 12 ? 'PM' : 'AM'
+            const h12 = h % 12 || 12
+            return "Today, " + h12 + ":" + (m < 10 ? '0' + m : m) + " " + ampm
+        } else if (diffDays === 1) {
+            return "Yesterday"
+        } else if (diffDays < 7) {
+            const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            return days[date.getDay()]
+        } else {
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            return months[date.getMonth()] + " " + date.getDate()
+        }
+    }
 
     // Left accent category strip
     Rectangle {
@@ -201,6 +231,37 @@ Rectangle {
                     }
                 }
 
+                // History Date Pill (shows exact historical timeframe: Today, Yesterday, Oct 24)
+                Rectangle {
+                    radius: 10
+                    implicitWidth: historyRow.implicitWidth + 14
+                    implicitHeight: 22
+                    color: Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+
+                    Row {
+                        id: historyRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        LucideIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            name: "clock"
+                            size: 10
+                            color: Theme.textMuted
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: card.formatHistoryDate(card.createdAt)
+                            font.pixelSize: 10
+                            color: Theme.textMuted
+                            font.bold: false
+                        }
+                    }
+                }
+
                 // Status pill (Completed badge if done)
                 Rectangle {
                     visible: card.done
@@ -235,23 +296,40 @@ Rectangle {
             }
         }
 
-        // ── Delete Button ─────────────────────────────────────────────────────
+        // ── Delete Button (Always Red with Framer-like Hover Spring & Rotation) ─
         Rectangle {
             id: delBtn
             Layout.alignment: Qt.AlignVCenter
             Layout.preferredWidth: 32
             Layout.preferredHeight: 32
-            radius: 6
-            color: delHover.hovered ? Theme.accentRedBg : "transparent"
-            border.color: delHover.hovered ? Theme.accentRedBorder : "transparent"
+            radius: 8
+            color: delHover.hovered 
+                   ? (Theme.isDark ? "#3A1418" : "#FEE2E2") 
+                   : (cardHover.hovered ? (Theme.isDark ? "#241014" : "#FFF1F2") : "transparent")
+            border.color: delHover.hovered 
+                          ? Theme.accentRed 
+                          : (cardHover.hovered ? Theme.accentRedBorder : "transparent")
             border.width: 1
+
+            // Framer Motion style spring micro-interactions: scale + rotation tilt
+            scale: delHover.hovered ? 1.12 : 1.0
+            rotation: delHover.hovered ? -8 : 0
+
+            Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutBack } }
+            Behavior on rotation { NumberAnimation { duration: 160; easing.type: Easing.OutBack } }
+            Behavior on color { ColorAnimation { duration: 140 } }
+            Behavior on border.color { ColorAnimation { duration: 140 } }
 
             LucideIcon {
                 anchors.centerIn: parent
                 name: "trash-2"
-                size: 13
-                color: delHover.hovered ? Theme.accentRed : Theme.textMuted
+                size: 14
+                color: Theme.accentRed // Crisp, vibrant red
             }
+
+            ToolTip.visible: delHover.hovered
+            ToolTip.text: "Delete Activity"
+            ToolTip.delay: 300
 
             HoverHandler { id: delHover }
             TapHandler {
