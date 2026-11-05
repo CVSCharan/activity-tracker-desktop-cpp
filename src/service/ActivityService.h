@@ -21,6 +21,9 @@ class ActivityService : public QObject
     Q_PROPERTY(int completedCount READ completedCount NOTIFY statsChanged)
     Q_PROPERTY(int pendingCount READ pendingCount NOTIFY statsChanged)
     Q_PROPERTY(int completionPercentage READ completionPercentage NOTIFY statsChanged)
+    Q_PROPERTY(bool canUndo READ canUndo NOTIFY canUndoChanged)
+    Q_PROPERTY(QString lastDeletedName READ lastDeletedName NOTIFY lastDeletedNameChanged)
+    Q_PROPERTY(QString syncStatus READ syncStatus NOTIFY syncStatusChanged)
 
     // The model itself — QML binds: model: activityService.model
     Q_PROPERTY(ActivityListModel* model READ model CONSTANT)
@@ -33,6 +36,9 @@ public:
     int completedCount() const;
     int pendingCount() const;
     int completionPercentage() const;
+    bool canUndo() const { return m_canUndo; }
+    QString lastDeletedName() const { return m_lastDeletedActivity.name; }
+    QString syncStatus() const { return m_syncStatus; }
     ActivityListModel *model() const { return m_model; }
 
     // ── Q_INVOKABLE methods — callable from QML ───────────────────────────────
@@ -41,12 +47,20 @@ public:
                                  int durationMinutes);
 
     Q_INVOKABLE void removeActivity(int index);
+    Q_INVOKABLE void undoLastDelete();
     Q_INVOKABLE void markComplete(int index);
+    Q_INVOKABLE void triggerSync();
+    Q_INVOKABLE void refresh();
 
 signals:
     void totalDurationTodayChanged();
     void completedCountChanged();
     void statsChanged();
+    void canUndoChanged();
+    void lastDeletedNameChanged();
+    void syncStatusChanged();
+    void activityRemoved(const QString &name);
+    void dataRefreshed();
 
     // Emitted when something goes wrong — QML can connect to show a toast/dialog
     void errorOccurred(const QString &message);
@@ -55,4 +69,8 @@ private:
     void save();  // serializes current model to JsonStore
 
     ActivityListModel *m_model = nullptr;  // owned: destroyed when 'this' is destroyed
+    Activity m_lastDeletedActivity;
+    int m_lastDeletedIndex = -1;
+    bool m_canUndo = false;
+    QString m_syncStatus = "synced"; // "syncing", "synced", "offline"
 };

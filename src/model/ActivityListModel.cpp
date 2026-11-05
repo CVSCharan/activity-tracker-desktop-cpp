@@ -82,6 +82,17 @@ void ActivityListModel::addActivity(const Activity &activity)
     Q_EMIT countChanged();
 }
 
+void ActivityListModel::insertActivity(int index, const Activity &activity)
+{
+    if (index < 0 || index > m_activities.size())
+        index = m_activities.size();
+
+    beginInsertRows(QModelIndex(), index, index);
+    m_activities.insert(index, activity);
+    endInsertRows();
+    Q_EMIT countChanged();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // removeActivity
 // ─────────────────────────────────────────────────────────────────────────────

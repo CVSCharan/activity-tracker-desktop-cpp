@@ -16,6 +16,8 @@ private slots:
     void testModelRemove();
     void testModelSetDone();
     void testServiceValidation();
+    void testServiceUndo();
+    void testServiceRefresh();
     void testJsonStoreSaveAndLoad();
 };
 
@@ -99,6 +101,37 @@ void TestActivityTracker::testServiceValidation()
     // Zero or negative duration should trigger errorOccurred
     service.addActivity("Valid Name", "Work", 0);
     QCOMPARE(errorSpy.count(), 2);
+}
+
+void TestActivityTracker::testServiceUndo()
+{
+    ActivityService service;
+    service.addActivity("Task To Delete", "Work", 30);
+    const int countBefore = service.model()->count();
+    QVERIFY(countBefore >= 1);
+
+    // Remove the activity
+    const int targetIndex = countBefore - 1;
+    service.removeActivity(targetIndex);
+    QCOMPARE(service.model()->count(), countBefore - 1);
+    QVERIFY(service.canUndo());
+    QCOMPARE(service.lastDeletedName(), QString("Task To Delete"));
+
+    // Undo the deletion
+    service.undoLastDelete();
+    QCOMPARE(service.model()->count(), countBefore);
+    QVERIFY(!service.canUndo());
+    QCOMPARE(service.model()->activities().last().name, QString("Task To Delete"));
+}
+
+void TestActivityTracker::testServiceRefresh()
+{
+    ActivityService service;
+    QSignalSpy refreshSpy(&service, &ActivityService::dataRefreshed);
+
+    service.refresh();
+    QVERIFY(refreshSpy.wait(1500));
+    QCOMPARE(refreshSpy.count(), 1);
 }
 
 void TestActivityTracker::testJsonStoreSaveAndLoad()

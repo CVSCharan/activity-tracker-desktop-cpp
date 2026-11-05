@@ -128,6 +128,8 @@ ColumnLayout {
                         clip: true
                         background: null
                         placeholderText: "" // Empty so Material style's internal floating label does NOT clash
+                        activeFocusOnTab: true
+                        KeyNavigation.tab: catWork
 
                         onAccepted: {
                             if (nameField.text.trim().length > 0) {
@@ -206,12 +208,15 @@ ColumnLayout {
                 implicitHeight: 38
                 radius: 8
                 readonly property bool isSelected: formRoot.selectedCategory === "Work"
+                activeFocusOnTab: true
+                KeyNavigation.tab: durationSpinBox
+                Keys.onRightPressed: formRoot.selectedCategory = "Learning"
 
                 color: isSelected 
                        ? Theme.accentBlueBg 
-                       : (workHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
-                border.color: isSelected ? Theme.accentBlue : Theme.borderDefault
-                border.width: isSelected ? 2 : 1
+                       : (workHover.hovered || catWork.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
+                border.color: isSelected ? Theme.accentBlue : (catWork.activeFocus ? Theme.accentBlue : Theme.borderDefault)
+                border.width: isSelected || catWork.activeFocus ? 2 : 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -245,12 +250,16 @@ ColumnLayout {
                 implicitHeight: 38
                 radius: 8
                 readonly property bool isSelected: formRoot.selectedCategory === "Learning"
+                activeFocusOnTab: true
+                KeyNavigation.tab: durationSpinBox
+                Keys.onLeftPressed: formRoot.selectedCategory = "Work"
+                Keys.onRightPressed: formRoot.selectedCategory = "Personal"
 
                 color: isSelected 
                        ? Theme.accentAmberBg 
-                       : (learnHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
-                border.color: isSelected ? Theme.accentAmber : Theme.borderDefault
-                border.width: isSelected ? 2 : 1
+                       : (learnHover.hovered || catLearn.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
+                border.color: isSelected ? Theme.accentAmber : (catLearn.activeFocus ? Theme.accentAmber : Theme.borderDefault)
+                border.width: isSelected || catLearn.activeFocus ? 2 : 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -284,12 +293,15 @@ ColumnLayout {
                 implicitHeight: 38
                 radius: 8
                 readonly property bool isSelected: formRoot.selectedCategory === "Personal"
+                activeFocusOnTab: true
+                KeyNavigation.tab: durationSpinBox
+                Keys.onLeftPressed: formRoot.selectedCategory = "Learning"
 
                 color: isSelected 
                        ? Theme.accentGreenBg 
-                       : (persHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
-                border.color: isSelected ? Theme.accentGreen : Theme.borderDefault
-                border.width: isSelected ? 2 : 1
+                       : (persHover.hovered || catPers.activeFocus ? Theme.surfaceCardHover : Theme.surfaceInput)
+                border.color: isSelected ? Theme.accentGreen : (catPers.activeFocus ? Theme.accentGreen : Theme.borderDefault)
+                border.width: isSelected || catPers.activeFocus ? 2 : 1
 
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -417,6 +429,8 @@ ColumnLayout {
                 stepSize: 5
                 editable: true
                 font.pixelSize: 13
+                activeFocusOnTab: true
+                KeyNavigation.tab: addBtn
 
                 contentItem: TextInput {
                     text: durationSpinBox.value.toString()
@@ -432,8 +446,8 @@ ColumnLayout {
                 background: Rectangle {
                     radius: 6
                     color: Theme.surfaceInput
-                    border.color: durationSpinBox.activeFocus ? Theme.borderFocus : Theme.borderDefault
-                    border.width: 1
+                    border.color: durationSpinBox.activeFocus ? Theme.accentBlue : Theme.borderDefault
+                    border.width: durationSpinBox.activeFocus ? 2 : 1
                 }
             }
 
@@ -473,6 +487,8 @@ ColumnLayout {
         text: "+ Log Activity"
         font.pixelSize: 14
         font.bold: true
+        activeFocusOnTab: true
+        KeyNavigation.tab: nameField
 
         enabled: nameField.text.trim().length > 0
 

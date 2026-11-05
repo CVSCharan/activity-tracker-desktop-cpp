@@ -59,6 +59,7 @@ public:
 
     // ── Mutation helpers (called by ActivityService) ──────────────────────────
     void addActivity(const Activity &activity);
+    void insertActivity(int index, const Activity &activity);
     void removeActivity(int index);
     void setDone(int index, bool done);
 

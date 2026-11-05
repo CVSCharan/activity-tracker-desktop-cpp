@@ -11,7 +11,7 @@ ListView {
 
     property string filterCategory: "All"
     property string filterText: ""
-    property string filterTimeframe: "Today"
+    property string filterTimeframe: "All Time"
 
     model: activityModel
 

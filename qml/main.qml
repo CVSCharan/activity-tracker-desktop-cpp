@@ -28,9 +28,9 @@ ApplicationWindow {
         property int width: 1080
         property int height: 740
         property bool isMaximized: false
-        property string sidebarDock: "left"       // "left" or "right"
-        property bool sidebarCollapsed: false     // true = 56px compact rail, false = full deck
-        property string activeTimeframe: "Today"  // "Today", "Last 7 Days", "Last 30 Days", "All Time"
+        property string sidebarDock: "left"         // "left" or "right"
+        property bool sidebarCollapsed: false       // true = 56px compact rail, false = full deck
+        property string activeTimeframe: "All Time" // Default: "All Time" so all activities show on launch
     }
 
     Component.onCompleted: {
@@ -74,6 +74,22 @@ ApplicationWindow {
 
     // ── Global Shortcuts Matrix ──────────────────────────────────────────────
     Shortcut {
+        sequence: "F5"
+        onActivated: activityService.refresh()
+    }
+    Shortcut {
+        sequence: "Ctrl+R"
+        onActivated: activityService.refresh()
+    }
+    Shortcut {
+        sequence: StandardKey.Undo
+        onActivated: {
+            if (activityService.canUndo) {
+                activityService.undoLastDelete()
+            }
+        }
+    }
+    Shortcut {
         sequence: "Ctrl+B"
         onActivated: {
             root.sidebarCollapsed = !root.sidebarCollapsed
@@ -109,13 +125,17 @@ ApplicationWindow {
     // Reference to search input for shortcut focusing
     property var taskSearchField: null
 
-    // ── Error notification banner ─────────────────────────────────────────────
+    // ── Service Event Notifications ───────────────────────────────────────────
     Connections {
         target: activityService
         function onErrorOccurred(message) {
             errorBar.text = message
             errorBar.visible = true
             errorTimer.restart()
+        }
+        function onDataRefreshed() {
+            refreshToast.visible = true
+            refToastTimer.restart()
         }
     }
 
@@ -222,11 +242,31 @@ ApplicationWindow {
                                 font.letterSpacing: 0.5
                             }
                             Text { text: "•"; color: Theme.textMuted; font.pixelSize: 10 }
-                            Text {
-                                text: "☁️ Neon PostgreSQL Connected"
-                                font.pixelSize: 10
-                                font.bold: true
-                                color: Theme.accentGreen
+                            
+                            // Dynamic Neon Database Sync Indicator
+                            RowLayout {
+                                spacing: 4
+                                Components.LucideIcon {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    name: activityService.syncStatus === "syncing" ? "rotate-ccw" : "cloud"
+                                    size: 10
+                                    color: activityService.syncStatus === "syncing" 
+                                           ? Theme.accentBlue 
+                                           : (activityService.syncStatus === "offline" ? Theme.accentAmber : Theme.accentGreen)
+                                }
+                                Text {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: {
+                                        if (activityService.syncStatus === "syncing") return "Syncing Neon DB..."
+                                        if (activityService.syncStatus === "offline") return "Offline Cache"
+                                        return "Neon PostgreSQL Synced"
+                                    }
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    color: activityService.syncStatus === "syncing" 
+                                           ? Theme.accentBlue 
+                                           : (activityService.syncStatus === "offline" ? Theme.accentAmber : Theme.accentGreen)
+                                }
                             }
                         }
                     }
@@ -315,6 +355,35 @@ ApplicationWindow {
                                 appSettings.activeTimeframe = "All Time"
                             }
                         }
+                    }
+                }
+
+                // ── Refresh Database Button (F5 / Ctrl+R) ─────────────────────
+                Rectangle {
+                    id: refreshBtn
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    radius: 8
+                    color: refreshHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
+                    border.color: Theme.borderDefault
+                    border.width: 1
+
+                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                    Components.LucideIcon {
+                        anchors.centerIn: parent
+                        name: "rotate-ccw"
+                        size: 13
+                        color: activityService.syncStatus === "syncing" ? Theme.accentBlue : Theme.textPrimary
+                    }
+
+                    ToolTip.visible: refreshHover.hovered
+                    ToolTip.text: "Refresh Data from Database (F5 / Ctrl+R)"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: refreshHover }
+                    TapHandler {
+                        onTapped: activityService.refresh()
                     }
                 }
 
@@ -1018,6 +1087,122 @@ ApplicationWindow {
             id: errorTimer
             interval: 3500
             onTriggered: errorBar.visible = false
+        }
+    }
+
+    // ── Floating Optimistic Undo Toast (Ctrl+Z) ──────────────────────────────
+    Rectangle {
+        id: undoToast
+        visible: activityService.canUndo
+        anchors {
+            bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
+            bottomMargin: 24
+        }
+        height: 42
+        implicitWidth: undoRow.implicitWidth + 28
+        radius: 8
+        color: Theme.isDark ? "#1E293B" : "#0F172A"
+        border.color: Theme.accentBlue
+        border.width: 1
+        z: 99
+
+        RowLayout {
+            id: undoRow
+            anchors.centerIn: parent
+            spacing: 12
+
+            Components.LucideIcon {
+                Layout.alignment: Qt.AlignVCenter
+                name: "trash-2"
+                size: 14
+                color: Theme.accentRed
+            }
+
+            Text {
+                Layout.alignment: Qt.AlignVCenter
+                text: "Activity \"" + activityService.lastDeletedName + "\" removed"
+                color: "#F8FAFC"
+                font.pixelSize: 12
+                font.bold: true
+            }
+
+            Rectangle {
+                Layout.alignment: Qt.AlignVCenter
+                implicitHeight: 26
+                implicitWidth: undoBtnRow.implicitWidth + 14
+                radius: 4
+                color: undoBtnHover.hovered ? Theme.accentBlue : Qt.rgba(Theme.accentBlue.r, Theme.accentBlue.g, Theme.accentBlue.b, 0.25)
+                border.color: Theme.accentBlue
+                border.width: 1
+
+                Behavior on color { ColorAnimation { duration: 120 } }
+
+                RowLayout {
+                    id: undoBtnRow
+                    anchors.centerIn: parent
+                    spacing: 4
+                    Components.LucideIcon {
+                        name: "rotate-ccw"
+                        size: 11
+                        color: "#FFFFFF"
+                    }
+                    Text {
+                        text: "Undo (Ctrl+Z)"
+                        font.pixelSize: 11
+                        font.bold: true
+                        color: "#FFFFFF"
+                    }
+                }
+
+                HoverHandler { id: undoBtnHover }
+                TapHandler {
+                    onTapped: activityService.undoLastDelete()
+                }
+            }
+        }
+    }
+
+    // ── Floating Refresh Toast ────────────────────────────────────────────────
+    Rectangle {
+        id: refreshToast
+        visible: false
+        anchors {
+            bottom: parent.bottom
+            horizontalCenter: parent.horizontalCenter
+            bottomMargin: 24
+        }
+        height: 38
+        implicitWidth: refToastRow.implicitWidth + 24
+        radius: 8
+        color: Theme.isDark ? "#14281E" : "#ECFDF5"
+        border.color: Theme.accentGreenBorder
+        border.width: 1
+        z: 99
+
+        RowLayout {
+            id: refToastRow
+            anchors.centerIn: parent
+            spacing: 8
+            Components.LucideIcon {
+                Layout.alignment: Qt.AlignVCenter
+                name: "check"
+                size: 13
+                color: Theme.accentGreen
+            }
+            Text {
+                Layout.alignment: Qt.AlignVCenter
+                text: "Workstation data refreshed from database"
+                color: Theme.accentGreen
+                font.pixelSize: 12
+                font.bold: true
+            }
+        }
+
+        Timer {
+            id: refToastTimer
+            interval: 2500
+            onTriggered: refreshToast.visible = false
         }
     }
 }

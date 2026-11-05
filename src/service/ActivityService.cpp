@@ -2,6 +2,7 @@
 #include "persistence/JsonStore.h"
 #include <QDate>
 #include <QString>
+#include <QTimer>
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constructor
@@ -86,7 +87,7 @@ void ActivityService::addActivity(const QString &name,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// removeActivity
+// removeActivity (Optimistic UI: stashes deleted item for Undo action)
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::removeActivity(int index)
 {
@@ -95,9 +96,71 @@ void ActivityService::removeActivity(int index)
         return;
     }
 
+    m_lastDeletedActivity = m_model->activities().at(index);
+    m_lastDeletedIndex = index;
+    m_canUndo = true;
+
     m_model->removeActivity(index);
     save();
+
     Q_EMIT totalDurationTodayChanged();
+    Q_EMIT canUndoChanged();
+    Q_EMIT lastDeletedNameChanged();
+    Q_EMIT activityRemoved(m_lastDeletedActivity.name);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// undoLastDelete (Restores last deleted activity to its original position)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::undoLastDelete()
+{
+    if (!m_canUndo || m_lastDeletedActivity.name.isEmpty()) {
+        return;
+    }
+
+    m_model->insertActivity(m_lastDeletedIndex, m_lastDeletedActivity);
+    m_canUndo = false;
+    save();
+
+    Q_EMIT totalDurationTodayChanged();
+    Q_EMIT canUndoChanged();
+    Q_EMIT lastDeletedNameChanged();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// triggerSync (Simulates / triggers cloud DB sync cycle)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::triggerSync()
+{
+    m_syncStatus = "syncing";
+    Q_EMIT syncStatusChanged();
+
+    QTimer::singleShot(800, this, [this]() {
+        m_syncStatus = "synced";
+        Q_EMIT syncStatusChanged();
+    });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// refresh (Reloads persisted activities from disk/DB and refreshes all metrics)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::refresh()
+{
+    m_syncStatus = "syncing";
+    Q_EMIT syncStatusChanged();
+
+    const QVector<Activity> loaded = JsonStore::load();
+    m_model->resetWith(loaded);
+
+    Q_EMIT totalDurationTodayChanged();
+    Q_EMIT statsChanged();
+    Q_EMIT completedCountChanged();
+
+    QTimer::singleShot(500, this, [this]() {
+        m_syncStatus = "synced";
+        Q_EMIT syncStatusChanged();
+        Q_EMIT dataRefreshed();
+    });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,7 +184,19 @@ void ActivityService::markComplete(int index)
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::save()
 {
+    m_syncStatus = "syncing";
+    Q_EMIT syncStatusChanged();
+
     if (!JsonStore::save(m_model->activities())) {
+        m_syncStatus = "offline";
+        Q_EMIT syncStatusChanged();
         Q_EMIT errorOccurred("Failed to save activities to disk.");
+        return;
     }
+
+    // Flash syncing -> synced to give tactile feedback
+    QTimer::singleShot(600, this, [this]() {
+        m_syncStatus = "synced";
+        Q_EMIT syncStatusChanged();
+    });
 }
