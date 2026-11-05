@@ -43,9 +43,11 @@ Rectangle {
                      : (cardHover.hovered ? Theme.accentBlue : Theme.borderDefault))
     border.width: 1
 
-    // ── Smooth Hover Lift Animation (like Framer Motion's whileHover) ────────
-    y: cardHover.hovered ? -1.5 : 0
-    Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+    // ── Smooth Hover Lift (Using transform so ListView item.y coordinate is NOT corrupted) ─
+    transform: Translate {
+        y: cardHover.hovered ? -2 : 0
+        Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+    }
 
     Behavior on color { ColorAnimation { duration: 150 } }
     Behavior on border.color { ColorAnimation { duration: 150 } }

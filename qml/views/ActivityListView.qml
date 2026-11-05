@@ -20,15 +20,12 @@ ListView {
     leftMargin:   0
     rightMargin:  0
 
-    // Smooth list transitions
+    // Smooth list item entry & removal transitions
     add: Transition {
-        NumberAnimation { properties: "opacity,scale"; from: 0; to: 1; duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { properties: "opacity,scale"; from: 0.8; to: 1.0; duration: 150; easing.type: Easing.OutCubic }
     }
     remove: Transition {
-        NumberAnimation { properties: "opacity,scale"; to: 0; duration: 150; easing.type: Easing.InCubic }
-    }
-    displaced: Transition {
-        NumberAnimation { properties: "y"; duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { properties: "opacity"; to: 0; duration: 120; easing.type: Easing.InCubic }
     }
 
     delegate: Components.ActivityCard {
@@ -71,8 +68,6 @@ ListView {
 
         visible: isVisibleInFilter
         height: isVisibleInFilter ? 76 : 0
-
-        Behavior on height { NumberAnimation { duration: 150 } }
 
         onRemoveRequested: activityService.removeActivity(cardDelegate.index)
         onCompleteRequested: activityService.markComplete(cardDelegate.index)

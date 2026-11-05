@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtQuick.Effects
 import QtCore
 import ActivityTracker 1.0
 
@@ -582,19 +583,24 @@ ApplicationWindow {
             Layout.fillHeight: true
             rows: 1
             columns: 2
-            columnSpacing: 0
+            columnSpacing: 12
             rowSpacing: 0
 
-            // ── Sidebar Deck (Dockable Left or Right, Expandable/Collapsible) ──
+            // ── Floating Deck Sidebar (Dockable Left or Right, Collapsible) ─────
             Rectangle {
                 id: sidebarContainer
                 Layout.column: root.sidebarDock === "left" ? 0 : 1
                 Layout.row: 0
                 Layout.fillHeight: true
-                Layout.preferredWidth: root.sidebarCollapsed ? 56 : (root.width > 960 ? 320 : 280)
+                Layout.preferredWidth: root.sidebarCollapsed ? 60 : (root.width > 960 ? 320 : 280)
+                Layout.topMargin: 12
+                Layout.bottomMargin: 12
+                Layout.leftMargin: root.sidebarDock === "left" ? 14 : 0
+                Layout.rightMargin: root.sidebarDock === "left" ? 0 : 14
+                radius: 14
                 clip: true
 
-                color: Theme.surfaceSidebar
+                color: Theme.surfaceCard
                 border.color: Theme.borderDefault
                 border.width: 1
 
@@ -882,7 +888,15 @@ ApplicationWindow {
                 Layout.row: 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: Theme.bgCanvas
+                Layout.topMargin: 12
+                Layout.bottomMargin: 12
+                Layout.leftMargin: root.sidebarDock === "left" ? 0 : 14
+                Layout.rightMargin: root.sidebarDock === "left" ? 14 : 0
+                radius: 14
+                clip: true
+                color: Theme.surfaceSidebar
+                border.color: Theme.borderDefault
+                border.width: 1
 
                 Behavior on color { ColorAnimation { duration: 150 } }
 

@@ -10,47 +10,6 @@ ColumnLayout {
 
     property string selectedCategory: "Work"
 
-    // ── Section Title ─────────────────────────────────────────────────────────
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.topMargin: 4
-        spacing: 8
-
-        Text {
-            text: "Add Activity"
-            font.pixelSize: 17
-            font.bold: true
-            color: Theme.textPrimary
-        }
-
-        Item { Layout.fillWidth: true }
-
-        Rectangle {
-            radius: 10
-            implicitWidth: 64
-            implicitHeight: 22
-            color: Theme.accentBlueBg
-            border.color: Theme.accentBlueBorder
-            border.width: 1
-
-            RowLayout {
-                anchors.centerIn: parent
-                spacing: 4
-                LucideIcon {
-                    name: "zap"
-                    size: 10
-                    color: Theme.accentBlue
-                }
-                Text {
-                    text: "Fast Log"
-                    font.pixelSize: 10
-                    font.bold: true
-                    color: Theme.accentBlue
-                }
-            }
-        }
-    }
-
     // ── Activity Name (Custom Desktop Input Field) ─────────────────────────────
     ColumnLayout {
         Layout.fillWidth: true
