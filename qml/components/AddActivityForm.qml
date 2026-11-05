@@ -9,6 +9,8 @@ ColumnLayout {
     spacing: 16
 
     property string selectedCategory: "Work"
+    property string selectedPriority: "Medium"
+    function focusNameField() { nameField.forceActiveFocus() }
 
     // ── Activity Name (Custom Desktop Input Field) ─────────────────────────────
     ColumnLayout {
@@ -289,6 +291,84 @@ ColumnLayout {
         }
     }
 
+    // ── Priority Selector (Executive P1-P4 Segment) ───────────────────────────
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 6
+
+        RowLayout {
+            Layout.fillWidth: true
+            Text {
+                text: "Priority"
+                color: Theme.textSecondary
+                font.pixelSize: 13
+                font.bold: true
+            }
+            Item { Layout.fillWidth: true }
+            Text {
+                text: formRoot.selectedPriority
+                color: formRoot.selectedPriority === "Urgent" ? Theme.accentRed :
+                       (formRoot.selectedPriority === "High" ? Theme.accentAmber :
+                       (formRoot.selectedPriority === "Medium" ? Theme.accentBlue : Theme.textMuted))
+                font.pixelSize: 11
+                font.bold: true
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+
+            Repeater {
+                model: [
+                    { name: "Urgent", color: "#EF4444", bg: "#2A1215", border: "#7F1D1D" },
+                    { name: "High",   color: "#F97316", bg: "#2A1805", border: "#7C2D12" },
+                    { name: "Medium", color: "#3B82F6", bg: "#0C1E3A", border: "#1E3A8A" },
+                    { name: "Low",    color: "#94A3B8", bg: "#1E293B", border: "#334155" }
+                ]
+
+                delegate: Rectangle {
+                    id: prioPill
+                    Layout.fillWidth: true
+                    implicitHeight: 32
+                    radius: 6
+                    readonly property bool isSelected: formRoot.selectedPriority === modelData.name
+
+                    color: isSelected 
+                           ? (Theme.isDark ? modelData.bg : Qt.lighter(modelData.bg, 3.5)) 
+                           : (prioHover.hovered ? Theme.surfaceCardHover : Theme.surfaceInput)
+                    border.color: isSelected ? modelData.color : Theme.borderDefault
+                    border.width: isSelected ? 1.5 : 1
+
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Rectangle {
+                            implicitWidth: 6
+                            implicitHeight: 6
+                            radius: 3
+                            color: modelData.color
+                        }
+
+                        Text {
+                            text: modelData.name
+                            font.pixelSize: 11
+                            font.bold: prioPill.isSelected
+                            color: prioPill.isSelected ? (Theme.isDark ? "#FFFFFF" : modelData.color) : Theme.textSecondary
+                        }
+                    }
+
+                    HoverHandler { id: prioHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: formRoot.selectedPriority = modelData.name }
+                }
+            }
+        }
+    }
+
     // ── Duration with 1-Click Quick Pills & Stepper ────────────────────────────
     ColumnLayout {
         Layout.fillWidth: true
@@ -489,7 +569,8 @@ ColumnLayout {
             activityService.addActivity(
                 nameField.text.trim(),
                 formRoot.selectedCategory,
-                durationSpinBox.value
+                durationSpinBox.value,
+                formRoot.selectedPriority
             )
             nameField.text = ""
             nameField.forceActiveFocus()

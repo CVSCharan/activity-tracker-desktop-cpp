@@ -25,6 +25,8 @@ struct Activity
     int       durationMinutes = 0;            // Planned duration in minutes
     bool      done            = false;        // Completion flag
     QString   status          = "Created";    // "Created" | "In Progress" | "Done"
+    QString   priority        = "Medium";     // "Urgent" | "High" | "Medium" | "Low"
+    int       extensionCount  = 0;            // Number of in-place extension sessions logged
     QDateTime createdAt;                      // Creation timestamp
 
     // ── Convenience factory ───────────────────────────────────────────────────
@@ -32,6 +34,7 @@ struct Activity
     // Like a static method in a JS class: Activity.create(...)
     static Activity create(const QString &name,
                            const QString &category,
-                           int durationMinutes);
+                           int durationMinutes,
+                           const QString &priority = "Medium");
 };
 

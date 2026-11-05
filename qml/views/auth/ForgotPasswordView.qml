@@ -276,7 +276,7 @@ Rectangle {
                         font.bold: true
 
                         contentItem: Text {
-                            text: "Update Password →"
+                            text: "Update Password"
                             color: "#FFFFFF"
                             font.bold: true
                             font.pixelSize: 14

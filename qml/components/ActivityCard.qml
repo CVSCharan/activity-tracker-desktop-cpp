@@ -16,17 +16,25 @@ Rectangle {
     required property int    index
     required property var    createdAt
     property string status: "Created"
+    property string priority: "Medium"
+    property int    extensionCount: 0
 
     readonly property string activeStatus: (typeof card.status !== "undefined" && card.status && card.status.length > 0)
                                            ? card.status
                                            : (card.done ? "Done" : "Created")
 
+    readonly property string activePriority: (typeof card.priority !== "undefined" && card.priority && card.priority.length > 0)
+                                             ? card.priority
+                                             : "Medium"
+
     signal removeRequested()
     signal completeRequested()
     signal reopenRequested()
     signal statusChangeRequested(string newStatus)
+    signal priorityChangeRequested(string newPriority)
     signal extendRequested(int additionalMinutes)
     signal createExtensionRequested(int minutes)
+    signal editRequested()
 
     height: 76
     radius: 10
@@ -77,6 +85,54 @@ Rectangle {
         } else {
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return months[date.getMonth()] + " " + date.getDate()
+        }
+    }
+
+    // Helper: Formats duration in both hours and minutes
+    function formatDurationBoth(mins) {
+        if (!mins || mins <= 0) return "0 min"
+        if (mins < 60) return mins + " min"
+        const h = Math.floor(mins / 60)
+        const m = mins % 60
+        return m > 0 ? (h + "h " + m + "m (" + mins + "m)") : (h + "h (" + mins + "m)")
+    }
+
+    // Helper: Clean display name (removes ugly legacy "(Extension)" text strings)
+    function cleanDisplayName(rawName) {
+        if (!rawName) return "(Untitled Activity)"
+        return rawName.replace(/(\s*\(Extension\))+$/gi, "").trim()
+    }
+
+    // Helper: Returns total extension count from either model or legacy name
+    function totalExtensions() {
+        const legacyMatches = (card.name || "").match(/\(Extension\)/gi)
+        const legacyCount = legacyMatches ? legacyMatches.length : 0
+        return Math.max(card.extensionCount || 0, legacyCount)
+    }
+
+    // Helper: Priority color
+    function priorityColor(prio) {
+        switch (prio) {
+        case "Urgent": return "#EF4444"
+        case "High":   return "#F97316"
+        case "Medium": return "#3B82F6"
+        default:       return "#94A3B8"
+        }
+    }
+    function priorityBg(prio) {
+        switch (prio) {
+        case "Urgent": return Theme.isDark ? "#2A1215" : "#FEF2F2"
+        case "High":   return Theme.isDark ? "#2A1805" : "#FFF7ED"
+        case "Medium": return Theme.isDark ? "#0C1E3A" : "#EFF6FF"
+        default:       return Theme.isDark ? "#1E293B" : "#F1F5F9"
+        }
+    }
+    function priorityBorder(prio) {
+        switch (prio) {
+        case "Urgent": return Theme.isDark ? "#7F1D1D" : "#FECACA"
+        case "High":   return Theme.isDark ? "#7C2D12" : "#FED7AA"
+        case "Medium": return Theme.isDark ? "#1E3A8A" : "#BFDBFE"
+        default:       return Theme.borderDefault
         }
     }
 
@@ -137,20 +193,104 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             spacing: 6
 
-            // Activity Name
-            Text {
+            // Activity Name + Extension / Iteration Badge
+            RowLayout {
                 Layout.fillWidth: true
-                text: card.name && card.name.length > 0 ? card.name : "(Untitled Activity)"
-                color: card.done ? Theme.textMuted : Theme.textPrimary
-                font.pixelSize: 14
-                font.bold: true
-                elide: Text.ElideRight
-                font.strikeout: card.done
+                spacing: 8
+
+                Text {
+                    Layout.fillWidth: true
+                    text: card.cleanDisplayName(card.name)
+                    color: titleHover.hovered ? Theme.accentBlue : (card.done ? Theme.textMuted : Theme.textPrimary)
+                    font.pixelSize: 14
+                    font.bold: true
+                    elide: Text.ElideRight
+                    font.strikeout: card.done
+
+                    HoverHandler { id: titleHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: card.editRequested() }
+                }
+
+                // Executive Extension / Iteration Badge (shown if extended)
+                Rectangle {
+                    visible: card.totalExtensions() > 0
+                    radius: 6
+                    implicitWidth: extLabel.implicitWidth + 14
+                    implicitHeight: 20
+                    color: Theme.isDark ? "#2A1838" : "#F3E8FF"
+                    border.color: Theme.accentPurple
+                    border.width: 1
+
+                    RowLayout {
+                        id: extLabel
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        LucideIcon {
+                            name: "zap"
+                            size: 10
+                            color: Theme.accentPurple
+                        }
+                        Text {
+                            text: "Ext +" + (card.totalExtensions() * 15) + "m (" + card.totalExtensions() + ")"
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: Theme.accentPurple
+                        }
+                    }
+
+                    ToolTip.visible: extBadgeHover.hovered
+                    ToolTip.text: "Activity duration extended by " + (card.totalExtensions() * 15) + " minutes across " + card.totalExtensions() + " logged session(s)"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: extBadgeHover }
+                }
             }
 
-            // Badges row: Category pill + Duration pill
+            // Badges row: Priority pill + Category pill + Duration pill + Status pill
             RowLayout {
                 spacing: 8
+
+                // Priority Pill (Urgent, High, Medium, Low)
+                Rectangle {
+                    id: prioBadge
+                    radius: 10
+                    implicitWidth: prioRow.implicitWidth + 14
+                    implicitHeight: 22
+                    color: card.priorityBg(card.activePriority)
+                    border.color: prioBadgeHover.hovered ? card.priorityColor(card.activePriority) : card.priorityBorder(card.activePriority)
+                    border.width: 1
+
+                    scale: prioBadgeHover.hovered ? 1.05 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 120 } }
+
+                    RowLayout {
+                        id: prioRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        Rectangle {
+                            implicitWidth: 6
+                            implicitHeight: 6
+                            radius: 3
+                            color: card.priorityColor(card.activePriority)
+                        }
+
+                        Text {
+                            text: card.activePriority
+                            font.pixelSize: 10
+                            font.bold: true
+                            color: card.priorityColor(card.activePriority)
+                        }
+                    }
+
+                    ToolTip.visible: prioBadgeHover.hovered
+                    ToolTip.text: "Priority: " + card.activePriority + " (Click to edit details)"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: prioBadgeHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: card.editRequested() }
+                }
 
                 // Category pill
                 Rectangle {
@@ -245,7 +385,7 @@ Rectangle {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: card.durationMinutes + " min"
+                            text: card.formatDurationBoth(card.durationMinutes)
                             font.pixelSize: 11
                             color: Theme.textSecondary
                             font.bold: true
@@ -329,9 +469,9 @@ Rectangle {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: {
-                                if (card.done || card.activeStatus === "Done") return "Done ▾";
-                                if (card.activeStatus === "In Progress") return "In Progress ▾";
-                                return "Todo ▾";
+                                if (card.done || card.activeStatus === "Done") return "Done";
+                                if (card.activeStatus === "In Progress") return "In Progress";
+                                return "Todo";
                             }
                             font.pixelSize: 10
                             font.bold: true
@@ -344,43 +484,11 @@ Rectangle {
                     }
 
                     HoverHandler { id: statusBadgeHover; cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: statusMenu.open()
-                    }
+                    TapHandler { onTapped: card.editRequested() }
 
                     ToolTip.visible: statusBadgeHover.hovered
-                    ToolTip.text: "Click to change lifecycle status"
+                    ToolTip.text: "Click to open activity details and operations"
                     ToolTip.delay: 300
-
-                    Menu {
-                        id: statusMenu
-                        y: statusBadge.height + 4
-
-                        Action {
-                            text: "📌  Todo / Created"
-                            enabled: card.activeStatus !== "Created"
-                            onTriggered: card.statusChangeRequested("Created")
-                        }
-                        Action {
-                            text: "⚡  In Progress"
-                            enabled: card.activeStatus !== "In Progress"
-                            onTriggered: card.statusChangeRequested("In Progress")
-                        }
-                        Action {
-                            text: "✓  Completed / Done"
-                            enabled: !card.done
-                            onTriggered: card.completeRequested()
-                        }
-                        MenuSeparator {}
-                        Action {
-                            text: "⏱  Extend Duration (+15m)"
-                            onTriggered: card.extendRequested(15)
-                        }
-                        Action {
-                            text: "✨  Create Extension Task (+15m)"
-                            onTriggered: card.createExtensionRequested(15)
-                        }
-                    }
                 }
             }
         }
@@ -458,18 +566,46 @@ Rectangle {
                 }
 
                 ToolTip.visible: extHover.hovered
-                ToolTip.text: card.done ? "Create Follow-up Extension Task (+15m)" : "Extend Duration (+15 min)"
+                ToolTip.text: "Extend Duration in-place (+15 min)"
                 ToolTip.delay: 300
 
                 HoverHandler { id: extHover }
                 TapHandler {
                     onTapped: {
-                        if (card.done) {
-                            card.createExtensionRequested(15)
-                        } else {
-                            card.extendRequested(15)
-                        }
+                        card.extendRequested(15)
                     }
+                }
+            }
+
+            // Edit / Details Button (Opens Activity Detail Modal)
+            Rectangle {
+                id: editBtn
+                implicitWidth: 32
+                implicitHeight: 32
+                radius: 8
+                color: editHover.hovered 
+                       ? Theme.surfaceCardHover 
+                       : (cardHover.hovered ? (Theme.isDark ? "#1B2230" : "#F1F5F9") : "transparent")
+                border.color: editHover.hovered ? Theme.accentBlue : "transparent"
+                border.width: 1
+
+                scale: editHover.hovered ? 1.08 : 1.0
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+
+                LucideIcon {
+                    anchors.centerIn: parent
+                    name: "edit-3"
+                    size: 13
+                    color: editHover.hovered ? Theme.accentBlue : Theme.textMuted
+                }
+
+                ToolTip.visible: editHover.hovered
+                ToolTip.text: "Open Activity Details & Operations"
+                ToolTip.delay: 300
+
+                HoverHandler { id: editHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    onTapped: card.editRequested()
                 }
             }
 

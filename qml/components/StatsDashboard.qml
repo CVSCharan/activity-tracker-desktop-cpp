@@ -222,18 +222,19 @@ GridLayout {
     StatCard {
         iconName: "flame"
         statTitle: statsGrid.timeframe === "Today" ? "TIME TODAY" : "TIME TRACKED"
-        statValue: (statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime) + " min"
-        statSubtitle: formatHours(statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime)
+        statValue: formatBoth(statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime)
+        statSubtitle: (statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime) + " mins total tracked"
         accentColor: Theme.accentPurple
         showProgressBar: false
         tagText: statsGrid.timeframe === "Today" ? "Daily Log" : statsGrid.timeframe
         tagColor: Theme.accentPurple
 
-        function formatHours(mins) {
+        function formatBoth(mins) {
+            if (!mins || mins <= 0) return "0 min"
+            if (mins < 60) return mins + " min"
             const h = Math.floor(mins / 60)
             const m = mins % 60
-            if (h === 0) return mins + "m tracked"
-            return h + "h " + m + "m tracked"
+            return m > 0 ? (h + "h " + m + "m") : (h + "h")
         }
     }
 }

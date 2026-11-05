@@ -46,12 +46,20 @@ public:
     // ── Q_INVOKABLE methods — callable from QML ───────────────────────────────
     Q_INVOKABLE void addActivity(const QString &name,
                                  const QString &category,
-                                 int durationMinutes);
+                                 int durationMinutes,
+                                 const QString &priority = "Medium");
 
     Q_INVOKABLE void removeActivity(int index);
     Q_INVOKABLE void undoLastDelete();
     Q_INVOKABLE void markComplete(int index);
     Q_INVOKABLE void setActivityStatus(int index, const QString &status);
+    Q_INVOKABLE void setActivityPriority(int index, const QString &priority);
+    Q_INVOKABLE void updateActivity(int index,
+                                    const QString &name,
+                                    const QString &category,
+                                    int durationMinutes,
+                                    const QString &status,
+                                    const QString &priority);
     Q_INVOKABLE void reopenActivity(int index);
     Q_INVOKABLE void extendActivity(int index, int additionalMinutes);
     Q_INVOKABLE void createExtension(int index, int minutes = 15);

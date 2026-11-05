@@ -389,7 +389,7 @@ Rectangle {
                         font.bold: true
 
                         contentItem: Text {
-                            text: "Sign In →"
+                            text: "Sign In"
                             color: "#FFFFFF"
                             font.bold: true
                             font.pixelSize: 14

@@ -77,6 +77,7 @@ set(QML_FILES
     qml/views/auth/ForgotPasswordView.qml
     qml/views/ActivityListView.qml
     qml/views/AnalyticsView.qml
+    qml/views/KanbanBoardView.qml
     qml/views/EmptyStateView.qml
     qml/components/LucideIcon.qml
     qml/components/ActivityCard.qml
@@ -84,6 +85,8 @@ set(QML_FILES
     qml/components/SummaryBar.qml
     qml/components/StatsDashboard.qml
     qml/components/GuidedTour.qml
+    qml/components/SettingsModal.qml
+    qml/components/ActivityDetailModal.qml
 )
 
 # Register Theme.qml as a QML singleton
@@ -110,6 +113,7 @@ qt_add_qml_module(ActivityTracker
         resources/icons/clock.svg
         resources/icons/cloud.svg
         resources/icons/copy.svg
+        resources/icons/edit-3.svg
         resources/icons/eye.svg
         resources/icons/eye-off.svg
         resources/icons/flame.svg
@@ -129,8 +133,17 @@ qt_add_qml_module(ActivityTracker
         resources/icons/sparkles.svg
         resources/icons/sun.svg
         resources/icons/target.svg
+        resources/icons/settings.svg
+        resources/icons/kanban.svg
+        resources/icons/layout-grid.svg
         resources/icons/trash-2.svg
         resources/icons/user.svg
+        resources/icons/x.svg
+        resources/icons/zap.svg
+        resources/icons/filter.svg
+        resources/icons/laptop.svg
+        resources/icons/monitor.svg
+        resources/icons/plus-circle.svg
         resources/icons/x.svg
         resources/icons/zap.svg
 )
@@ -192,6 +205,8 @@ target_include_directories(tst_ActivityModel PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/tst_ActivityModel_autogen/include
+    ${CMAKE_CURRENT_BINARY_DIR}/tst_ActivityModel_autogen/include_Debug
+    ${CMAKE_CURRENT_BINARY_DIR}/tst_ActivityModel_autogen/include_Release
 )
 
 target_link_libraries(tst_ActivityModel PRIVATE

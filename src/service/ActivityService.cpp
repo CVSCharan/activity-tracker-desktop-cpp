@@ -77,7 +77,8 @@ int ActivityService::completionPercentage() const
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::addActivity(const QString &name,
                                   const QString &category,
-                                  int durationMinutes)
+                                  int durationMinutes,
+                                  const QString &priority)
 {
     // Input validation — emit an error signal instead of crashing
     if (name.trimmed().isEmpty()) {
@@ -89,7 +90,7 @@ void ActivityService::addActivity(const QString &name,
         return;
     }
 
-    const Activity activity = Activity::create(name.trimmed(), category, durationMinutes);
+    const Activity activity = Activity::create(name.trimmed(), category, durationMinutes, priority);
     m_model->addActivity(activity);
     save();
     Q_EMIT totalDurationTodayChanged();
@@ -205,6 +206,50 @@ void ActivityService::setActivityStatus(int index, const QString &status)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// setActivityPriority ("Urgent" | "High" | "Medium" | "Low")
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::setActivityPriority(int index, const QString &priority)
+{
+    if (index < 0 || index >= m_model->count() || priority.trimmed().isEmpty()) {
+        Q_EMIT errorOccurred("Invalid activity priority parameters.");
+        return;
+    }
+
+    m_model->setPriority(index, priority);
+    save();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// updateActivity (Edits all activity properties in-place)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::updateActivity(int index,
+                                     const QString &name,
+                                     const QString &category,
+                                     int durationMinutes,
+                                     const QString &status,
+                                     const QString &priority)
+{
+    if (index < 0 || index >= m_model->count()) {
+        Q_EMIT errorOccurred("Invalid activity index.");
+        return;
+    }
+    if (name.trimmed().isEmpty()) {
+        Q_EMIT errorOccurred("Activity name cannot be empty.");
+        return;
+    }
+    if (durationMinutes <= 0) {
+        Q_EMIT errorOccurred("Duration must be greater than 0.");
+        return;
+    }
+
+    m_model->updateActivity(index, name.trimmed(), category, durationMinutes, status, priority);
+    save();
+    Q_EMIT totalDurationTodayChanged();
+    Q_EMIT completedCountChanged();
+    Q_EMIT statsChanged();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // reopenActivity (Reopens a finished task back into active progress)
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::reopenActivity(int index)
@@ -221,7 +266,7 @@ void ActivityService::reopenActivity(int index)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// extendActivity (Adds additional minutes to existing activity)
+// extendActivity (Adds additional minutes to existing activity in-place)
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::extendActivity(int index, int additionalMinutes)
 {
@@ -230,8 +275,7 @@ void ActivityService::extendActivity(int index, int additionalMinutes)
         return;
     }
 
-    const int newDuration = m_model->activities().at(index).durationMinutes + additionalMinutes;
-    m_model->setDuration(index, newDuration);
+    m_model->incrementExtension(index, additionalMinutes);
     save();
     Q_EMIT totalDurationTodayChanged();
     Q_EMIT statsChanged();

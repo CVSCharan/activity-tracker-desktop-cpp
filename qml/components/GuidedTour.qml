@@ -48,8 +48,8 @@ Item {
         {
             title: "Interactive Task Lifecycle",
             icon: "zap",
-            desc: "Manage tasks smoothly with full lifecycle badges: Todo ▾, In Progress ▾, and Completed ▾. Quickly extend durations with '+15m' or reopen finished activities with one click.",
-            shortcut: "Click the status badge on any card to switch state or create extensions."
+            desc: "Manage tasks smoothly with full lifecycle badges: Todo, In Progress, and Completed. Click any task to open its Operations & Details window, or quickly extend duration with '+15m'.",
+            shortcut: "Click any activity to open its complete Operations & Details modal."
         },
         {
             title: "Workstation Customization",
@@ -367,7 +367,7 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "← Back"
+                        text: "Back"
                         font.pixelSize: 12
                         font.bold: true
                         color: Theme.textSecondary
@@ -379,7 +379,7 @@ Item {
 
                 // Next / Finish button
                 Rectangle {
-                    implicitWidth: tourRoot.currentStep === tourRoot.steps.length - 1 ? 120 : 96
+                    implicitWidth: tourRoot.currentStep === tourRoot.steps.length - 1 ? 110 : 86
                     implicitHeight: 32
                     radius: 8
                     color: nextHover.hovered ? Qt.lighter(Theme.accentBlue, 1.1) : Theme.accentBlue
@@ -391,7 +391,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 6
                         Text {
-                            text: tourRoot.currentStep === tourRoot.steps.length - 1 ? "Finish Tour 🎉" : "Next →"
+                            text: tourRoot.currentStep === tourRoot.steps.length - 1 ? "Finish Tour" : "Next"
                             font.pixelSize: 12
                             font.bold: true
                             color: "#FFFFFF"

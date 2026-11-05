@@ -38,15 +38,36 @@ QVariant ActivityListModel::data(const QModelIndex &index, int role) const
     const Activity &activity = m_activities.at(index.row()); // const ref: no copy
 
     switch (role) {
-    case IdRole:        return activity.id;
-    case NameRole:      return activity.name;
-    case CategoryRole:  return activity.category;
-    case DurationRole:  return activity.durationMinutes;
-    case DoneRole:      return activity.done;
-    case StatusRole:    return activity.status;
-    case CreatedAtRole: return activity.createdAt;
-    default:            return {};
+    case IdRole:             return activity.id;
+    case NameRole:           return activity.name;
+    case CategoryRole:       return activity.category;
+    case DurationRole:       return activity.durationMinutes;
+    case DoneRole:           return activity.done;
+    case StatusRole:         return activity.status;
+    case PriorityRole:       return activity.priority;
+    case ExtensionCountRole: return activity.extensionCount;
+    case CreatedAtRole:      return activity.createdAt;
+    default:                 return {};
     }
+}
+
+QVariantMap ActivityListModel::get(int index) const
+{
+    if (index < 0 || index >= m_activities.size())
+        return {};
+
+    const Activity &activity = m_activities.at(index);
+    return {
+        { "activityId", activity.id },
+        { "name", activity.name },
+        { "category", activity.category },
+        { "durationMinutes", activity.durationMinutes },
+        { "done", activity.done },
+        { "status", activity.status },
+        { "priority", activity.priority },
+        { "extensionCount", activity.extensionCount },
+        { "createdAt", activity.createdAt }
+    };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -58,13 +79,15 @@ QVariant ActivityListModel::data(const QModelIndex &index, int role) const
 QHash<int, QByteArray> ActivityListModel::roleNames() const
 {
     return {
-        { IdRole,        "activityId"       },
-        { NameRole,      "name"             },
-        { CategoryRole,  "category"         },
-        { DurationRole,  "durationMinutes"  },
-        { DoneRole,      "done"             },
-        { StatusRole,    "status"           },
-        { CreatedAtRole, "createdAt"        }
+        { IdRole,             "activityId"       },
+        { NameRole,           "name"             },
+        { CategoryRole,       "category"         },
+        { DurationRole,       "durationMinutes"  },
+        { DoneRole,           "done"             },
+        { StatusRole,         "status"           },
+        { PriorityRole,       "priority"         },
+        { ExtensionCountRole, "extensionCount"   },
+        { CreatedAtRole,      "createdAt"        }
     };
 }
 
@@ -148,6 +171,46 @@ void ActivityListModel::setDuration(int index, int minutes)
 
     const QModelIndex changedIndex = createIndex(index, 0);
     Q_EMIT dataChanged(changedIndex, changedIndex, { DurationRole });
+}
+
+void ActivityListModel::setPriority(int index, const QString &priority)
+{
+    if (index < 0 || index >= m_activities.size() || priority.isEmpty())
+        return;
+
+    m_activities[index].priority = priority;
+
+    const QModelIndex changedIndex = createIndex(index, 0);
+    Q_EMIT dataChanged(changedIndex, changedIndex, { PriorityRole });
+}
+
+void ActivityListModel::incrementExtension(int index, int additionalMinutes)
+{
+    if (index < 0 || index >= m_activities.size() || additionalMinutes <= 0)
+        return;
+
+    m_activities[index].durationMinutes += additionalMinutes;
+    m_activities[index].extensionCount += 1;
+
+    const QModelIndex changedIndex = createIndex(index, 0);
+    Q_EMIT dataChanged(changedIndex, changedIndex, { DurationRole, ExtensionCountRole });
+}
+
+void ActivityListModel::updateActivity(int index, const QString &name, const QString &category, int durationMinutes, const QString &status, const QString &priority)
+{
+    if (index < 0 || index >= m_activities.size())
+        return;
+
+    Activity &a = m_activities[index];
+    a.name = name;
+    a.category = category;
+    a.durationMinutes = durationMinutes;
+    a.status = status;
+    a.done = (status == "Done");
+    a.priority = priority;
+
+    const QModelIndex changedIndex = createIndex(index, 0);
+    Q_EMIT dataChanged(changedIndex, changedIndex, { NameRole, CategoryRole, DurationRole, StatusRole, DoneRole, PriorityRole });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

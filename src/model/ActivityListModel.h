@@ -40,6 +40,8 @@ public:
         DurationRole,
         DoneRole,
         StatusRole,
+        PriorityRole,
+        ExtensionCountRole,
         CreatedAtRole
     };
     Q_ENUM(ActivityRole)  // makes the enum accessible from QML
@@ -57,6 +59,7 @@ public:
 
     // ── Convenience accessor ──────────────────────────────────────────────────
     int count() const { return m_activities.size(); }
+    Q_INVOKABLE QVariantMap get(int index) const;
 
     // ── Mutation helpers (called by ActivityService) ──────────────────────────
     void addActivity(const Activity &activity);
@@ -65,6 +68,9 @@ public:
     void setDone(int index, bool done);
     void setStatus(int index, const QString &status);
     void setDuration(int index, int minutes);
+    void setPriority(int index, const QString &priority);
+    void incrementExtension(int index, int additionalMinutes);
+    void updateActivity(int index, const QString &name, const QString &category, int durationMinutes, const QString &status, const QString &priority);
 
     // ── Bulk load (used by persistence on startup) ────────────────────────────
     void resetWith(const QVector<Activity> &activities);

@@ -1,5 +1,6 @@
 #include <QGuiApplication>
 #include <QCoreApplication>
+#include <QFont>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -21,6 +22,11 @@ int main(int argc, char *argv[])
     // ── Create the application ────────────────────────────────────────────────
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon(":/qt/qml/ActivityTracker/resources/icons/app_icon.svg"));
+
+    // ── High-legibility modern sans-serif typography (MERN / desktop aesthetic) ──
+    QFont appFont("Segoe UI Variable Text", 10);
+    appFont.setStyleHint(QFont::SansSerif);
+    app.setFont(appFont);
 
     // ── Set Material style for Qt Quick Controls 2 ───────────────────────────
     // Must be called BEFORE QQmlApplicationEngine is created.

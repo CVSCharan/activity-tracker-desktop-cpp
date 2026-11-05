@@ -73,7 +73,13 @@ Rectangle {
                 spacing: 6
                 Text { text: "Today:"; color: Theme.textSecondary; font.pixelSize: 11 }
                 Text {
-                    text: activityService.totalDurationToday + " min"
+                    text: {
+                        const mins = activityService.totalDurationToday
+                        if (mins < 60) return mins + " min"
+                        const h = Math.floor(mins / 60)
+                        const m = mins % 60
+                        return m > 0 ? (h + "h " + m + "m (" + mins + "m)") : (h + "h (" + mins + "m)")
+                    }
                     color: Theme.accentBlue
                     font.bold: true
                     font.pixelSize: 11

@@ -359,7 +359,7 @@ Rectangle {
                         font.bold: true
 
                         contentItem: Text {
-                            text: "Create Account →"
+                            text: "Create Account"
                             color: "#FFFFFF"
                             font.bold: true
                             font.pixelSize: 14

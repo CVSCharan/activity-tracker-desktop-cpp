@@ -17,7 +17,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 Activity Activity::create(const QString &name,
                           const QString &category,
-                          int durationMinutes)
+                          int durationMinutes,
+                          const QString &priority)
 {
     Activity a;                                               // stack-allocated instance
     a.id               = QUuid::createUuid().toString(QUuid::WithoutBraces); // like crypto.randomUUID()
@@ -25,6 +26,9 @@ Activity Activity::create(const QString &name,
     a.category         = category;
     a.durationMinutes  = durationMinutes;
     a.done             = false;
+    a.status           = "Created";
+    a.priority         = priority.isEmpty() ? "Medium" : priority;
+    a.extensionCount   = 0;
     a.createdAt        = QDateTime::currentDateTime();        // like new Date()
     return a;                                                 // returned by value (cheap: compiler elides the copy)
 }

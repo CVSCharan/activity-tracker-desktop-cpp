@@ -20,6 +20,234 @@ ApplicationWindow {
     minimumHeight: 600
     title: "CVS Activity Tracker — Executive Workstation"
 
+    // ── Reusable Dark-Styled Menu Component ──────────────────────────────────
+    component ModernMenu: Menu {
+        id: modernMenuRoot
+        delegate: MenuItem {
+            id: mItem
+            contentItem: RowLayout {
+                spacing: 10
+                Text {
+                    Layout.fillWidth: true
+                    text: mItem.text.replace(/&/g, "")
+                    font.pixelSize: 12
+                    font.bold: mItem.highlighted
+                    color: mItem.enabled ? (mItem.highlighted ? Theme.accentBlue : Theme.textPrimary) : Theme.textMuted
+                    elide: Text.ElideRight
+                }
+                Text {
+                    readonly property string shortcutStr: (mItem.action && mItem.action.shortcut) ? ("" + mItem.action.shortcut) : ""
+                    visible: shortcutStr.length > 0
+                    text: shortcutStr
+                    font.pixelSize: 10
+                    color: Theme.textMuted
+                }
+            }
+            background: Rectangle {
+                implicitWidth: 200
+                implicitHeight: 30
+                radius: 6
+                color: mItem.highlighted ? Theme.surfaceBadge : "transparent"
+            }
+        }
+        background: Rectangle {
+            implicitWidth: 210
+            radius: 8
+            color: Theme.surfaceCard
+            border.color: Theme.borderDefault
+            border.width: 1
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: Theme.isDark ? "#80000000" : "#25000000"
+                shadowBlur: 0.8
+                shadowVerticalOffset: 4
+            }
+        }
+    }
+
+    // ── Desktop Application MenuBar ───────────────────────────────────────────
+    menuBar: MenuBar {
+        visible: authService.isLoggedIn
+
+        background: Rectangle {
+            color: Theme.surfaceNav
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: Theme.borderDefault
+            }
+        }
+
+        delegate: MenuBarItem {
+            id: mbItem
+            contentItem: Text {
+                text: mbItem.text.replace(/&/g, "")
+                font.pixelSize: 12
+                font.bold: mbItem.highlighted
+                color: mbItem.highlighted ? Theme.accentBlue : Theme.textSecondary
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            background: Rectangle {
+                implicitWidth: 50
+                implicitHeight: 28
+                radius: 6
+                color: mbItem.highlighted ? Theme.surfaceBadge : "transparent"
+            }
+        }
+
+        ModernMenu {
+            title: "&File"
+            Action {
+                text: "&New Activity"
+                shortcut: "Ctrl+N"
+                onTriggered: {
+                    root.sidebarCollapsed = false
+                    appSettings.sidebarCollapsed = false
+                    if (addActivityForm) addActivityForm.focusNameField()
+                }
+            }
+            Action {
+                text: "&Refresh Database"
+                shortcut: "Ctrl+R"
+                onTriggered: activityService.refresh()
+            }
+            MenuSeparator {}
+            Action {
+                text: "&Workstation Settings..."
+                shortcut: "Ctrl+,"
+                onTriggered: settingsModal.open()
+            }
+            MenuSeparator {}
+            Action {
+                text: "Sign &Out"
+                shortcut: "Ctrl+L"
+                onTriggered: authService.logout()
+            }
+            Action {
+                text: "E&xit"
+                shortcut: StandardKey.Quit
+                onTriggered: Qt.quit()
+            }
+        }
+
+        ModernMenu {
+            title: "&Edit"
+            Action {
+                text: "&Undo Remove"
+                shortcut: StandardKey.Undo
+                enabled: activityService.canUndo
+                onTriggered: activityService.undoLastDelete()
+            }
+            MenuSeparator {}
+            Action {
+                text: "&Clear Completed Activities..."
+                onTriggered: settingsModal.clearDoneRequested()
+            }
+        }
+
+        ModernMenu {
+            title: "&View"
+            Action {
+                text: "&List View"
+                shortcut: "Ctrl+1"
+                checkable: true
+                checked: root.currentViewMode === "list"
+                onTriggered: root.currentViewMode = "list"
+            }
+            Action {
+                text: "&Kanban Board"
+                shortcut: "Ctrl+2"
+                checkable: true
+                checked: root.currentViewMode === "kanban"
+                onTriggered: root.currentViewMode = "kanban"
+            }
+            MenuSeparator {}
+            Action {
+                text: "Toggle &Sidebar"
+                shortcut: "Ctrl+B"
+                onTriggered: {
+                    root.sidebarCollapsed = !root.sidebarCollapsed
+                    appSettings.sidebarCollapsed = root.sidebarCollapsed
+                }
+            }
+            Action {
+                text: "Switch Dock &Side (Left/Right)"
+                shortcut: "Ctrl+D"
+                onTriggered: {
+                    root.sidebarDock = (root.sidebarDock === "left" ? "right" : "left")
+                    appSettings.sidebarDock = root.sidebarDock
+                }
+            }
+            MenuSeparator {}
+            Action {
+                text: "Toggle Dark / &Light Theme"
+                shortcut: "Ctrl+T"
+                onTriggered: Theme.toggleTheme()
+            }
+        }
+
+        ModernMenu {
+            title: "&Scope"
+            Action {
+                text: "Today"
+                checkable: true
+                checked: root.activeTimeframe === "Today"
+                onTriggered: {
+                    root.activeTimeframe = "Today"
+                    appSettings.activeTimeframe = "Today"
+                }
+            }
+            Action {
+                text: "Last 7 Days"
+                checkable: true
+                checked: root.activeTimeframe === "Last 7 Days"
+                onTriggered: {
+                    root.activeTimeframe = "Last 7 Days"
+                    appSettings.activeTimeframe = "Last 7 Days"
+                }
+            }
+            Action {
+                text: "Last 30 Days"
+                checkable: true
+                checked: root.activeTimeframe === "Last 30 Days"
+                onTriggered: {
+                    root.activeTimeframe = "Last 30 Days"
+                    appSettings.activeTimeframe = "Last 30 Days"
+                }
+            }
+            Action {
+                text: "All Time"
+                checkable: true
+                checked: root.activeTimeframe === "All Time"
+                onTriggered: {
+                    root.activeTimeframe = "All Time"
+                    appSettings.activeTimeframe = "All Time"
+                }
+            }
+        }
+
+        ModernMenu {
+            title: "&Help"
+            Action {
+                text: "Start &Interactive Guided Tour..."
+                onTriggered: guidedTour.startTour()
+            }
+            Action {
+                text: "Keyboard &Shortcuts..."
+                shortcut: "F1"
+                onTriggered: settingsModal.open()
+            }
+            MenuSeparator {}
+            Action {
+                text: "&About CVS Activity Tracker"
+                onTriggered: aboutDialog.open()
+            }
+        }
+    }
+
     // ── Persistent Window Geometry & Executive User Preferences ───────────────
     Settings {
         id: appSettings
@@ -33,6 +261,7 @@ ApplicationWindow {
         property bool sidebarCollapsed: false       // true = 56px compact rail, false = full deck
         property string activeTimeframe: "All Time" // Default: "All Time" so all activities show on launch
         property bool hasSeenTour: false            // Auto-launches guided tour on first device run
+        property string viewMode: "list"            // "list" or "kanban"
     }
 
     Component.onCompleted: {
@@ -57,6 +286,7 @@ ApplicationWindow {
         appSettings.sidebarDock = root.sidebarDock
         appSettings.sidebarCollapsed = root.sidebarCollapsed
         appSettings.activeTimeframe = root.activeTimeframe
+        appSettings.viewMode = root.currentViewMode
     }
 
     // ── Dynamic Material Style Configuration ─────────────────────────────────
@@ -69,11 +299,22 @@ ApplicationWindow {
 
     // ── Global Filter & Workstation State ────────────────────────────────────
     property string activeCategoryFilter: "All"
+    property string activePriorityFilter: "All"
     property string activeSearchQuery: ""
     property string activeTimeframe: appSettings.activeTimeframe
     property string activeAuthScreen: "login" // "login", "signup", "forgot"
     property string sidebarDock: appSettings.sidebarDock
     property bool   sidebarCollapsed: appSettings.sidebarCollapsed
+    property string currentViewMode: appSettings.viewMode || "list"
+    property bool undoToastDismissed: false
+
+    // Auto-dismiss undo toast after 6 seconds
+    Timer {
+        id: undoDismissTimer
+        interval: 6000
+        repeat: false
+        onTriggered: root.undoToastDismissed = true
+    }
 
     // ── Global Shortcuts Matrix ──────────────────────────────────────────────
     Shortcut {
@@ -85,7 +326,7 @@ ApplicationWindow {
         onActivated: activityService.refresh()
     }
     Shortcut {
-        sequence: StandardKey.Undo
+        sequences: [ StandardKey.Undo ]
         onActivated: {
             if (activityService.canUndo) {
                 activityService.undoLastDelete()
@@ -139,6 +380,12 @@ ApplicationWindow {
         function onDataRefreshed() {
             refreshToast.visible = true
             refToastTimer.restart()
+        }
+        function onCanUndoChanged() {
+            if (activityService.canUndo) {
+                root.undoToastDismissed = false
+                undoDismissTimer.restart()
+            }
         }
     }
 
@@ -215,7 +462,37 @@ ApplicationWindow {
 
                 // Brand Logo & Title
                 RowLayout {
-                    spacing: 12
+                    spacing: 10
+
+                    // Primary Sidebar Toggle Button (Ctrl+B)
+                    Rectangle {
+                        implicitWidth: 32
+                        implicitHeight: 32
+                        radius: 8
+                        color: sbToggleHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
+                        border.color: root.sidebarCollapsed ? Theme.borderDefault : Theme.accentBlue
+                        border.width: 1
+
+                        Components.LucideIcon {
+                            anchors.centerIn: parent
+                            name: root.sidebarDock === "left" ? "panel-left" : "panel-right"
+                            size: 15
+                            color: root.sidebarCollapsed ? Theme.textMuted : Theme.accentBlue
+                        }
+
+                        ToolTip.visible: sbToggleHover.hovered
+                        ToolTip.text: root.sidebarCollapsed ? "Expand Sidebar (Ctrl+B)" : "Collapse Sidebar (Ctrl+B)"
+                        ToolTip.delay: 300
+
+                        HoverHandler { id: sbToggleHover; cursorShape: Qt.PointingHandCursor }
+                        TapHandler {
+                            onTapped: {
+                                root.sidebarCollapsed = !root.sidebarCollapsed
+                                appSettings.sidebarCollapsed = root.sidebarCollapsed
+                            }
+                        }
+                    }
+
                     Rectangle {
                         Layout.preferredWidth: 36
                         Layout.preferredHeight: 36
@@ -310,13 +587,6 @@ ApplicationWindow {
                             font.bold: true
                             color: Theme.textPrimary
                         }
-
-                        Components.LucideIcon {
-                            Layout.alignment: Qt.AlignVCenter
-                            name: "arrow-up-down"
-                            size: 10
-                            color: Theme.textMuted
-                        }
                     }
 
                     ToolTip.visible: tfHover.hovered
@@ -392,69 +662,6 @@ ApplicationWindow {
                 }
 
                 Item { Layout.fillWidth: true }
-
-                // ── Sidebar Dock & Collapse Controls ──────────────────────────
-                RowLayout {
-                    spacing: 6
-
-                    // Toggle Sidebar Collapse Button (Ctrl+B)
-                    Rectangle {
-                        implicitWidth: 32
-                        implicitHeight: 28
-                        radius: 6
-                        color: toggleSidebarHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
-                        border.color: Theme.borderDefault
-                        border.width: 1
-
-                        Components.LucideIcon {
-                            anchors.centerIn: parent
-                            name: root.sidebarDock === "left" ? "panel-left" : "panel-right"
-                            size: 14
-                            color: root.sidebarCollapsed ? Theme.textMuted : Theme.accentBlue
-                        }
-
-                        ToolTip.visible: toggleSidebarHover.hovered
-                        ToolTip.text: root.sidebarCollapsed ? "Expand Sidebar (Ctrl+B)" : "Collapse Sidebar (Ctrl+B)"
-                        ToolTip.delay: 300
-
-                        HoverHandler { id: toggleSidebarHover }
-                        TapHandler {
-                            onTapped: {
-                                root.sidebarCollapsed = !root.sidebarCollapsed
-                                appSettings.sidebarCollapsed = root.sidebarCollapsed
-                            }
-                        }
-                    }
-
-                    // Switch Dock Side Button (Ctrl+D)
-                    Rectangle {
-                        implicitWidth: 32
-                        implicitHeight: 28
-                        radius: 6
-                        color: dockSwitchHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge
-                        border.color: Theme.borderDefault
-                        border.width: 1
-
-                        Components.LucideIcon {
-                            anchors.centerIn: parent
-                            name: "arrow-up-down"
-                            size: 13
-                            color: Theme.textSecondary
-                        }
-
-                        ToolTip.visible: dockSwitchHover.hovered
-                        ToolTip.text: "Dock Sidebar to " + (root.sidebarDock === "left" ? "Right" : "Left") + " (Ctrl+D)"
-                        ToolTip.delay: 300
-
-                        HoverHandler { id: dockSwitchHover }
-                        TapHandler {
-                            onTapped: {
-                                root.sidebarDock = (root.sidebarDock === "left" ? "right" : "left")
-                                appSettings.sidebarDock = root.sidebarDock
-                            }
-                        }
-                    }
-                }
 
                 // Quick stats pill in header
                 Rectangle {
@@ -549,6 +756,46 @@ ApplicationWindow {
                     HoverHandler { id: tourBtnHover; cursorShape: Qt.PointingHandCursor }
                     TapHandler {
                         onTapped: guidedTour.startTour()
+                    }
+                }
+
+                // ── Workstation Settings Button ──────────────────────────────
+                Rectangle {
+                    id: settingsBtn
+                    radius: 14
+                    color: settingsBtnHover.hovered ? Theme.accentBlueBg : Theme.surfaceBadge
+                    border.color: settingsBtnHover.hovered ? Theme.accentBlue : Theme.borderDefault
+                    border.width: 1
+                    implicitWidth: 88
+                    implicitHeight: 28
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 5
+                        Components.LucideIcon {
+                            Layout.alignment: Qt.AlignVCenter
+                            name: "settings"
+                            size: 12
+                            color: Theme.accentBlue
+                        }
+                        Text {
+                            Layout.alignment: Qt.AlignVCenter
+                            text: "Settings"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: settingsBtnHover.hovered ? Theme.accentBlue : Theme.textPrimary
+                        }
+                    }
+
+                    ToolTip.visible: settingsBtnHover.hovered
+                    ToolTip.text: "Workstation Preferences & Active Sessions"
+                    ToolTip.delay: 300
+
+                    HoverHandler { id: settingsBtnHover; cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        onTapped: settingsModal.open()
                     }
                 }
 
@@ -665,21 +912,21 @@ ApplicationWindow {
                         anchors.margins: 16
                         spacing: 12
 
-                        // Sidebar Header with Mini Dock Controls
+                        // Sidebar Header
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 8
 
                             Components.LucideIcon {
                                 Layout.alignment: Qt.AlignVCenter
-                                name: "plus"
-                                size: 14
+                                name: "plus-circle"
+                                size: 16
                                 color: Theme.accentBlue
                             }
 
                             Text {
                                 Layout.alignment: Qt.AlignVCenter
-                                text: "Add New Activity"
+                                text: "New Activity"
                                 font.pixelSize: 14
                                 font.bold: true
                                 color: Theme.textPrimary
@@ -687,54 +934,28 @@ ApplicationWindow {
 
                             Item { Layout.fillWidth: true }
 
-                            // Quick Dock Side Toggle
+                            // Executive Sidebar Collapse Button
                             Rectangle {
                                 Layout.alignment: Qt.AlignVCenter
-                                implicitWidth: 24
-                                implicitHeight: 24
-                                radius: 4
-                                color: sidebarDockMiniHover.hovered ? Theme.surfaceCardHover : "transparent"
-
-                                Components.LucideIcon {
-                                    anchors.centerIn: parent
-                                    name: "arrow-up-down"
-                                    size: 11
-                                    color: Theme.textMuted
-                                }
-
-                                ToolTip.visible: sidebarDockMiniHover.hovered
-                                ToolTip.text: "Dock to " + (root.sidebarDock === "left" ? "Right" : "Left")
-                                ToolTip.delay: 300
-
-                                HoverHandler { id: sidebarDockMiniHover }
-                                TapHandler {
-                                    onTapped: {
-                                        root.sidebarDock = (root.sidebarDock === "left" ? "right" : "left")
-                                        appSettings.sidebarDock = root.sidebarDock
-                                    }
-                                }
-                            }
-
-                            // Quick Collapse Button
-                            Rectangle {
-                                Layout.alignment: Qt.AlignVCenter
-                                implicitWidth: 24
-                                implicitHeight: 24
-                                radius: 4
+                                implicitHeight: 28
+                                implicitWidth: 28
+                                radius: 6
                                 color: sidebarCollapseMiniHover.hovered ? Theme.surfaceCardHover : "transparent"
+                                border.color: sidebarCollapseMiniHover.hovered ? Theme.borderDefault : "transparent"
+                                border.width: 1
 
                                 Components.LucideIcon {
                                     anchors.centerIn: parent
                                     name: root.sidebarDock === "left" ? "panel-left" : "panel-right"
-                                    size: 12
-                                    color: Theme.textMuted
+                                    size: 13
+                                    color: sidebarCollapseMiniHover.hovered ? Theme.accentBlue : Theme.textMuted
                                 }
 
                                 ToolTip.visible: sidebarCollapseMiniHover.hovered
-                                ToolTip.text: "Collapse Sidebar"
+                                ToolTip.text: "Collapse Sidebar (Ctrl+B)"
                                 ToolTip.delay: 300
 
-                                HoverHandler { id: sidebarCollapseMiniHover }
+                                HoverHandler { id: sidebarCollapseMiniHover; cursorShape: Qt.PointingHandCursor }
                                 TapHandler {
                                     onTapped: {
                                         root.sidebarCollapsed = true
@@ -746,6 +967,7 @@ ApplicationWindow {
 
                         // Embedded Form
                         Components.AddActivityForm {
+                            id: addActivityForm
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                         }
@@ -904,7 +1126,7 @@ ApplicationWindow {
 
                         Components.LucideIcon {
                             anchors.centerIn: parent
-                            name: "arrow-up-down"
+                            name: root.sidebarDock === "left" ? "panel-right" : "panel-left"
                             size: 13
                             color: Theme.textMuted
                         }
@@ -1000,7 +1222,170 @@ ApplicationWindow {
                             }
                         }
 
+                        // Priority Filter Dropdown Pill (No arrow marks, clean executive styling)
+                        Rectangle {
+                            id: prioFilterBtn
+                            implicitHeight: 28
+                            implicitWidth: prioFilterRow.implicitWidth + 20
+                            radius: 14
+                            readonly property bool isFiltered: root.activePriorityFilter !== "All"
+                            color: isFiltered ? Theme.accentBlueBg : (prioFilterHover.hovered ? Theme.surfaceCardHover : Theme.surfaceBadge)
+                            border.color: isFiltered ? Theme.accentBlue : Theme.borderDefault
+                            border.width: 1
+
+                            Behavior on color { ColorAnimation { duration: 120 } }
+
+                            RowLayout {
+                                id: prioFilterRow
+                                anchors.centerIn: parent
+                                spacing: 6
+
+                                Rectangle {
+                                    implicitWidth: 6
+                                    implicitHeight: 6
+                                    radius: 3
+                                    color: {
+                                        switch (root.activePriorityFilter) {
+                                        case "Urgent": return "#EF4444";
+                                        case "High":   return "#F97316";
+                                        case "Medium": return "#3B82F6";
+                                        case "Low":    return "#94A3B8";
+                                        default:       return Theme.textSecondary;
+                                        }
+                                    }
+                                }
+
+                                Text {
+                                    text: root.activePriorityFilter === "All" ? "Priority: All" : ("Priority: " + root.activePriorityFilter)
+                                    font.pixelSize: 11
+                                    font.bold: prioFilterBtn.isFiltered
+                                    color: prioFilterBtn.isFiltered ? Theme.accentBlue : Theme.textSecondary
+                                }
+                            }
+
+                            ToolTip.visible: prioFilterHover.hovered
+                            ToolTip.text: "Filter activities by priority"
+                            ToolTip.delay: 300
+
+                            HoverHandler { id: prioFilterHover; cursorShape: Qt.PointingHandCursor }
+                            TapHandler { onTapped: prioFilterMenu.open() }
+
+                            Menu {
+                                id: prioFilterMenu
+                                y: prioFilterBtn.height + 4
+
+                                Action {
+                                    text: "All Priorities"
+                                    checkable: true
+                                    checked: root.activePriorityFilter === "All"
+                                    onTriggered: root.activePriorityFilter = "All"
+                                }
+                                Action {
+                                    text: "Urgent (P1)"
+                                    checkable: true
+                                    checked: root.activePriorityFilter === "Urgent"
+                                    onTriggered: root.activePriorityFilter = "Urgent"
+                                }
+                                Action {
+                                    text: "High (P2)"
+                                    checkable: true
+                                    checked: root.activePriorityFilter === "High"
+                                    onTriggered: root.activePriorityFilter = "High"
+                                }
+                                Action {
+                                    text: "Medium (P3)"
+                                    checkable: true
+                                    checked: root.activePriorityFilter === "Medium"
+                                    onTriggered: root.activePriorityFilter = "Medium"
+                                }
+                                Action {
+                                    text: "Low (P4)"
+                                    checkable: true
+                                    checked: root.activePriorityFilter === "Low"
+                                    onTriggered: root.activePriorityFilter = "Low"
+                                }
+                            }
+                        }
+
                         Item { Layout.fillWidth: true }
+
+                        // ── View Mode Switcher: List vs Kanban Board ───────────
+                        Rectangle {
+                            implicitHeight: 32
+                            implicitWidth: 160
+                            radius: 8
+                            color: Theme.surfaceBadge
+                            border.color: Theme.borderDefault
+                            border.width: 1
+
+                            RowLayout {
+                                anchors.fill: parent
+                                spacing: 2
+                                anchors.margins: 2
+
+                                // List View Switch Pill
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    radius: 6
+                                    color: root.currentViewMode === "list" ? Theme.accentBlueBg : (listModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: root.currentViewMode === "list" ? Theme.accentBlue : "transparent"
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 5
+                                        Components.LucideIcon {
+                                            name: "layout-grid"
+                                            size: 12
+                                            color: root.currentViewMode === "list" ? Theme.accentBlue : Theme.textMuted
+                                        }
+                                        Text {
+                                            text: "List"
+                                            font.pixelSize: 11
+                                            font.bold: root.currentViewMode === "list"
+                                            color: root.currentViewMode === "list" ? Theme.accentBlue : Theme.textSecondary
+                                        }
+                                    }
+
+                                    HoverHandler { id: listModeHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: root.currentViewMode = "list"
+                                    }
+                                }
+
+                                // Kanban Board Switch Pill
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    radius: 6
+                                    color: root.currentViewMode === "kanban" ? Theme.accentBlueBg : (boardModeHov.hovered ? Theme.surfaceCardHover : "transparent")
+                                    border.color: root.currentViewMode === "kanban" ? Theme.accentBlue : "transparent"
+                                    border.width: 1
+
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 5
+                                        Components.LucideIcon {
+                                            name: "kanban"
+                                            size: 12
+                                            color: root.currentViewMode === "kanban" ? Theme.accentBlue : Theme.textMuted
+                                        }
+                                        Text {
+                                            text: "Board"
+                                            font.pixelSize: 11
+                                            font.bold: root.currentViewMode === "kanban"
+                                            color: root.currentViewMode === "kanban" ? Theme.accentBlue : Theme.textSecondary
+                                        }
+                                    }
+
+                                    HoverHandler { id: boardModeHov; cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        onTapped: root.currentViewMode = "kanban"
+                                    }
+                                }
+                            }
+                        }
 
                         // Live Instant Search Box
                         Rectangle {
@@ -1085,7 +1470,7 @@ ApplicationWindow {
                         }
                     }
 
-                    // ── 3. Scrollable Activity List & Empty State ─────────────
+                    // ── 3. Scrollable Activity List, Kanban Board & Empty State ──
                     Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
@@ -1094,9 +1479,26 @@ ApplicationWindow {
                             id: mainListView
                             anchors.fill: parent
                             filterCategory: root.activeCategoryFilter
+                            filterPriority: root.activePriorityFilter
                             filterText: root.activeSearchQuery
                             filterTimeframe: root.activeTimeframe
-                            visible: activityModel.count > 0
+                            visible: root.currentViewMode === "list" && activityModel.count > 0
+                            onEditRequested: function(index) {
+                                activityDetailModal.openForActivity(index)
+                            }
+                        }
+
+                        Views.KanbanBoardView {
+                            id: kanbanBoardView
+                            anchors.fill: parent
+                            filterCategory: root.activeCategoryFilter
+                            filterPriority: root.activePriorityFilter
+                            filterText: root.activeSearchQuery
+                            filterTimeframe: root.activeTimeframe
+                            visible: root.currentViewMode === "kanban" && activityModel.count > 0
+                            onEditRequested: function(index) {
+                                activityDetailModal.openForActivity(index)
+                            }
                         }
 
                         // Empty State View
@@ -1152,14 +1554,14 @@ ApplicationWindow {
     // ── Floating Optimistic Undo Toast (Ctrl+Z) ──────────────────────────────
     Rectangle {
         id: undoToast
-        visible: activityService.canUndo
+        visible: activityService.canUndo && !root.undoToastDismissed
         anchors {
             bottom: parent.bottom
             horizontalCenter: parent.horizontalCenter
             bottomMargin: 24
         }
         height: 42
-        implicitWidth: undoRow.implicitWidth + 28
+        implicitWidth: undoRow.implicitWidth + 36
         radius: 8
         color: Theme.isDark ? "#1E293B" : "#0F172A"
         border.color: Theme.accentBlue
@@ -1180,7 +1582,7 @@ ApplicationWindow {
 
             Text {
                 Layout.alignment: Qt.AlignVCenter
-                text: "Activity \"" + activityService.lastDeletedName + "\" removed"
+                text: "Activity \"" + (activityService.lastDeletedName || "").replace(/(\s*\(Extension\))+$/gi, "").trim() + "\" removed"
                 color: "#F8FAFC"
                 font.pixelSize: 12
                 font.bold: true
@@ -1214,9 +1616,41 @@ ApplicationWindow {
                     }
                 }
 
-                HoverHandler { id: undoBtnHover }
+                HoverHandler { id: undoBtnHover; cursorShape: Qt.PointingHandCursor }
                 TapHandler {
-                    onTapped: activityService.undoLastDelete()
+                    onTapped: {
+                        undoDismissTimer.stop()
+                        root.undoToastDismissed = true
+                        activityService.undoLastDelete()
+                    }
+                }
+            }
+
+            // Dismiss Button (X)
+            Rectangle {
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: 22
+                implicitHeight: 22
+                radius: 11
+                color: closeUndoHover.hovered ? (Theme.isDark ? "#334155" : "#475569") : "transparent"
+
+                Components.LucideIcon {
+                    anchors.centerIn: parent
+                    name: "x"
+                    size: 11
+                    color: closeUndoHover.hovered ? "#FFFFFF" : Theme.textMuted
+                }
+
+                ToolTip.visible: closeUndoHover.hovered
+                ToolTip.text: "Dismiss"
+                ToolTip.delay: 200
+
+                HoverHandler { id: closeUndoHover; cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    onTapped: {
+                        undoDismissTimer.stop()
+                        root.undoToastDismissed = true
+                    }
                 }
             }
         }
@@ -1344,6 +1778,94 @@ ApplicationWindow {
         onTourSkipped: {
             appSettings.hasSeenTour = true
             authService.completeTour()
+        }
+    }
+
+    // ── Executive Settings Modal ──────────────────────────────────────────────
+    Components.SettingsModal {
+        id: settingsModal
+        onTourRequested: {
+            settingsModal.close()
+            guidedTour.startTour()
+        }
+        onClearDoneRequested: {
+            settingsModal.close()
+            for (let i = activityModel.count - 1; i >= 0; --i) {
+                const item = activityModel.get(i)
+                if (item && item.done) {
+                    activityService.removeActivity(i)
+                }
+            }
+        }
+    }
+
+    // ── Executive Activity Operations & Detail Modal ─────────────────────────
+    Components.ActivityDetailModal {
+        id: activityDetailModal
+    }
+
+    // ── Executive About Workstation Dialog ────────────────────────────────────
+    Dialog {
+        id: aboutDialog
+        title: "About CVS Activity Tracker"
+        modal: true
+        anchors.centerIn: parent
+        width: 440
+        standardButtons: Dialog.Close
+
+        ColumnLayout {
+            spacing: 14
+            RowLayout {
+                spacing: 12
+                Rectangle {
+                    implicitWidth: 44
+                    implicitHeight: 44
+                    radius: 12
+                    color: Theme.accentBlue
+                    Components.LucideIcon {
+                        anchors.centerIn: parent
+                        name: "clock"
+                        size: 24
+                        color: "#FFFFFF"
+                    }
+                }
+                ColumnLayout {
+                    spacing: 2
+                    Text {
+                        text: "CVS Activity Tracker"
+                        font.bold: true
+                        font.pixelSize: 16
+                        color: Theme.textPrimary
+                    }
+                    Text {
+                        text: "Enterprise Workstation • v1.0.0"
+                        font.pixelSize: 12
+                        color: Theme.accentBlue
+                        font.bold: true
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: Theme.borderDefault
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: "High-performance C++17 MVVM & Qt Quick workstation with Neon PostgreSQL serverless cloud sync, interactive Kanban board, hardware accelerated 60 FPS graphics, and instant remote session revocation."
+                font.pixelSize: 12
+                color: Theme.textSecondary
+                wrapMode: Text.WordWrap
+                lineHeight: 1.3
+            }
+
+            RowLayout {
+                spacing: 6
+                Text { text: "Stack:"; font.pixelSize: 11; font.bold: true; color: Theme.textMuted }
+                Text { text: "Qt 6.8+ • C++17 • MSVC 2022 • PostgreSQL / Neon"; font.pixelSize: 11; color: Theme.textSecondary }
+            }
         }
     }
 }

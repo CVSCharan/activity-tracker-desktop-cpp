@@ -65,6 +65,12 @@ void TestActivityTracker::testModelAddAndRoles()
     QCOMPARE(model.data(idx, ActivityListModel::CategoryRole).toString(), QString("Work"));
     QCOMPARE(model.data(idx, ActivityListModel::DurationRole).toInt(), 60);
     QCOMPARE(model.data(idx, ActivityListModel::DoneRole).toBool(), false);
+
+    QVariantMap map = model.get(0);
+    QCOMPARE(map["name"].toString(), QString("Task 1"));
+    QCOMPARE(map["category"].toString(), QString("Work"));
+    QCOMPARE(map["durationMinutes"].toInt(), 60);
+    QCOMPARE(map["done"].toBool(), false);
 }
 
 void TestActivityTracker::testModelRemove()
@@ -165,9 +171,14 @@ void TestActivityTracker::testTaskLifecycleAndExtension()
     QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::DoneRole).toBool(), false);
     QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::StatusRole).toString(), QString("In Progress"));
 
-    // Extend task by +15m
+    // Extend task by +15m (in-place cumulative extension)
     service.extendActivity(idx, 15);
     QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::DurationRole).toInt(), 60);
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::ExtensionCountRole).toInt(), 1);
+
+    // Set priority to Urgent
+    service.setActivityPriority(idx, "Urgent");
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::PriorityRole).toString(), QString("Urgent"));
 
     // Create follow-up extension activity
     const int countBefore = service.model()->count();
