@@ -90,8 +90,16 @@ jobs:
       - name: Deploy Dependencies with windeployqt (Windows Release)
         if: runner.os == 'Windows' && matrix.build_type == 'Release'
         run: |
-          windeployqt --qmldir qml build/Release/ActivityTracker.exe
-          Compress-Archive -Path build/Release/* -DestinationPath ActivityTracker-Windows-Release.zip
+          New-Item -ItemType Directory -Path dist -Force
+          Copy-Item build/Release/ActivityTracker.exe dist/
+          windeployqt --qmldir qml dist/ActivityTracker.exe
+          # Strict verification guardrail: assert NO test executables exist in the release package
+          $testFiles = Get-ChildItem -Path dist -Recurse -Include "*test*.exe", "*tst*.exe"
+          if ($testFiles.Count -gt 0) {
+              Write-Error "CRITICAL: Test binary leaked into release package: $($testFiles.FullName)"
+              exit 1
+          }
+          Compress-Archive -Path dist/* -DestinationPath ActivityTracker-Windows-Release.zip
 
       # ── Build on macOS (Apple Silicon & Intel) ────────────────────────────────
       - name: Configure CMake (macOS)
@@ -113,6 +121,11 @@ jobs:
         if: runner.os == 'macOS' && matrix.build_type == 'Release'
         run: |
           macdeployqt build/ActivityTracker.app -qmldir=qml
+          # Strict verification guardrail: assert ActivityTracker.app contains NO test executables
+          if find build/ActivityTracker.app -name "*tst_*" -o -name "*test*" | grep -q .; then
+              echo "CRITICAL: Test binary found in macOS bundle!"
+              exit 1
+          fi
           zip -r ActivityTracker-macOS-Release.zip build/ActivityTracker.app
 
       # ── Upload Artifacts ─────────────────────────────────────────────────────

@@ -191,6 +191,13 @@ target_link_libraries(tst_ActivityModel PRIVATE
     Qt6::Test
 )
 
+# Isolate test binaries into a separate tests/ directory so they NEVER co-locate with production release binaries
+set_target_properties(tst_ActivityModel PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests"
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/tests"
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/tests"
+)
+
 add_test(NAME tst_ActivityModel COMMAND tst_ActivityModel)
 if(WIN32)
     set_tests_properties(tst_ActivityModel PROPERTIES
