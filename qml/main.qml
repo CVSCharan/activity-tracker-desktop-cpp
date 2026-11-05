@@ -908,7 +908,7 @@ ApplicationWindow {
                             spacing: 6
 
                             Repeater {
-                                model: ["All", "Work", "Learning", "Personal", "Done"]
+                                model: ["All", "In Progress", "Work", "Learning", "Personal", "Done"]
                                 delegate: Rectangle {
                                     id: chip
                                     implicitHeight: 28

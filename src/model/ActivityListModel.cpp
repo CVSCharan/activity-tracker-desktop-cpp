@@ -43,6 +43,7 @@ QVariant ActivityListModel::data(const QModelIndex &index, int role) const
     case CategoryRole:  return activity.category;
     case DurationRole:  return activity.durationMinutes;
     case DoneRole:      return activity.done;
+    case StatusRole:    return activity.status;
     case CreatedAtRole: return activity.createdAt;
     default:            return {};
     }
@@ -62,6 +63,7 @@ QHash<int, QByteArray> ActivityListModel::roleNames() const
         { CategoryRole,  "category"         },
         { DurationRole,  "durationMinutes"  },
         { DoneRole,      "done"             },
+        { StatusRole,    "status"           },
         { CreatedAtRole, "createdAt"        }
     };
 }
@@ -119,9 +121,33 @@ void ActivityListModel::setDone(int index, bool done)
         return;
 
     m_activities[index].done = done;
+    m_activities[index].status = done ? "Done" : "In Progress";
 
     const QModelIndex changedIndex = createIndex(index, 0);
-    Q_EMIT dataChanged(changedIndex, changedIndex, { DoneRole });
+    Q_EMIT dataChanged(changedIndex, changedIndex, { DoneRole, StatusRole });
+}
+
+void ActivityListModel::setStatus(int index, const QString &status)
+{
+    if (index < 0 || index >= m_activities.size())
+        return;
+
+    m_activities[index].status = status;
+    m_activities[index].done = (status == "Done");
+
+    const QModelIndex changedIndex = createIndex(index, 0);
+    Q_EMIT dataChanged(changedIndex, changedIndex, { DoneRole, StatusRole });
+}
+
+void ActivityListModel::setDuration(int index, int minutes)
+{
+    if (index < 0 || index >= m_activities.size() || minutes <= 0)
+        return;
+
+    m_activities[index].durationMinutes = minutes;
+
+    const QModelIndex changedIndex = createIndex(index, 0);
+    Q_EMIT dataChanged(changedIndex, changedIndex, { DurationRole });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

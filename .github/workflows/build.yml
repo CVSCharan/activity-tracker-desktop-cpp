@@ -1,4 +1,4 @@
-name: Multi-Platform CI Build (Windows, Apple Silicon & Intel macOS)
+name: Multi-Platform CI Build (Windows & Apple Silicon macOS)
 
 on:
   push:
@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+
+# Automatically cancel obsolete workflow runs when newer commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,27 +33,15 @@ jobs:
             arch: win64_msvc2022_64
             build_type: Release
 
-          # macOS Apple Silicon (ARM64 - M-series)
+          # macOS Apple Silicon (ARM64 M-series / macos-latest)
           - os: macos-latest
             name: macOS Apple Silicon (ARM64)
-            platform: macos-arm64
+            platform: macos
             arch: clang_64
             build_type: Debug
           - os: macos-latest
             name: macOS Apple Silicon (ARM64)
-            platform: macos-arm64
-            arch: clang_64
-            build_type: Release
-
-          # macOS Intel (x86_64)
-          - os: macos-13
-            name: macOS Intel (x86_64)
-            platform: macos-intel
-            arch: clang_64
-            build_type: Debug
-          - os: macos-13
-            name: macOS Intel (x86_64)
-            platform: macos-intel
+            platform: macos
             arch: clang_64
             build_type: Release
 
@@ -101,7 +94,7 @@ jobs:
           }
           Compress-Archive -Path dist/* -DestinationPath ActivityTracker-Windows-Release.zip
 
-      # ── Build on macOS (Apple Silicon & Intel) ────────────────────────────────
+      # ── Build on macOS (Apple Silicon ARM64) ─────────────────────────────────
       - name: Configure CMake (macOS)
         if: runner.os == 'macOS'
         run: |
@@ -137,15 +130,8 @@ jobs:
           path: ActivityTracker-Windows-Release.zip
 
       - name: Upload macOS Apple Silicon Release Artifact
-        if: matrix.platform == 'macos-arm64' && matrix.build_type == 'Release'
+        if: matrix.platform == 'macos' && matrix.build_type == 'Release'
         uses: actions/upload-artifact@v4
         with:
           name: ActivityTracker-macOS-AppleSilicon-Release
-          path: ActivityTracker-macOS-Release.zip
-
-      - name: Upload macOS Intel Release Artifact
-        if: matrix.platform == 'macos-intel' && matrix.build_type == 'Release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ActivityTracker-macOS-Intel-Release
           path: ActivityTracker-macOS-Release.zip

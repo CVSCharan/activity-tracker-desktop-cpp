@@ -36,6 +36,7 @@ bool JsonStore::save(const QVector<Activity> &activities)
         obj["category"]        = a.category;
         obj["durationMinutes"] = a.durationMinutes;
         obj["done"]            = a.done;
+        obj["status"]          = a.status.isEmpty() ? (a.done ? "Done" : "Created") : a.status;
         obj["createdAt"]       = a.createdAt.toString(Qt::ISODate);  // ISO 8601 string
         array.append(obj);
     }
@@ -94,6 +95,7 @@ QVector<Activity> JsonStore::load()
         a.category        = obj["category"].toString();
         a.durationMinutes = obj["durationMinutes"].toInt();
         a.done            = obj["done"].toBool();
+        a.status          = obj.contains("status") ? obj["status"].toString() : (a.done ? "Done" : "Created");
         a.createdAt       = QDateTime::fromString(obj["createdAt"].toString(), Qt::ISODate);
 
         if (a.id.isEmpty() || a.name.isEmpty())

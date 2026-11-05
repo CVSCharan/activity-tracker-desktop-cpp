@@ -39,6 +39,7 @@ public:
         CategoryRole,
         DurationRole,
         DoneRole,
+        StatusRole,
         CreatedAtRole
     };
     Q_ENUM(ActivityRole)  // makes the enum accessible from QML
@@ -62,6 +63,8 @@ public:
     void insertActivity(int index, const Activity &activity);
     void removeActivity(int index);
     void setDone(int index, bool done);
+    void setStatus(int index, const QString &status);
+    void setDuration(int index, int minutes);
 
     // ── Bulk load (used by persistence on startup) ────────────────────────────
     void resetWith(const QVector<Activity> &activities);

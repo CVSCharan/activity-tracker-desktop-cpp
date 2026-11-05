@@ -39,6 +39,8 @@ ListView {
         readonly property bool matchesCategory: {
             if (listView.filterCategory === "All") return true;
             if (listView.filterCategory === "Done") return cardDelegate.done;
+            if (listView.filterCategory === "In Progress") return cardDelegate.activeStatus === "In Progress";
+            if (listView.filterCategory === "Todo") return cardDelegate.activeStatus === "Created";
             return cardDelegate.category === listView.filterCategory;
         }
 
@@ -73,6 +75,16 @@ ListView {
 
         onRemoveRequested: activityService.removeActivity(cardDelegate.index)
         onCompleteRequested: activityService.markComplete(cardDelegate.index)
+        onReopenRequested: activityService.reopenActivity(cardDelegate.index)
+        onStatusChangeRequested: function(newStatus) {
+            activityService.setActivityStatus(cardDelegate.index, newStatus)
+        }
+        onExtendRequested: function(additionalMinutes) {
+            activityService.extendActivity(cardDelegate.index, additionalMinutes)
+        }
+        onCreateExtensionRequested: function(minutes) {
+            activityService.createExtension(cardDelegate.index, minutes)
+        }
     }
 
     ScrollBar.vertical: ScrollBar {

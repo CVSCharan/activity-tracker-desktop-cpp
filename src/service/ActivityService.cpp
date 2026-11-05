@@ -180,6 +180,70 @@ void ActivityService::markComplete(int index)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// setActivityStatus ("Created" | "In Progress" | "Done")
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::setActivityStatus(int index, const QString &status)
+{
+    if (index < 0 || index >= m_model->count()) {
+        Q_EMIT errorOccurred("Invalid activity index.");
+        return;
+    }
+
+    m_model->setStatus(index, status);
+    save();
+    Q_EMIT completedCountChanged();
+    Q_EMIT statsChanged();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// reopenActivity (Reopens a finished task back into active progress)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::reopenActivity(int index)
+{
+    if (index < 0 || index >= m_model->count()) {
+        Q_EMIT errorOccurred("Invalid activity index.");
+        return;
+    }
+
+    m_model->setStatus(index, "In Progress");
+    save();
+    Q_EMIT completedCountChanged();
+    Q_EMIT statsChanged();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// extendActivity (Adds additional minutes to existing activity)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::extendActivity(int index, int additionalMinutes)
+{
+    if (index < 0 || index >= m_model->count() || additionalMinutes <= 0) {
+        Q_EMIT errorOccurred("Invalid extension parameters.");
+        return;
+    }
+
+    const int newDuration = m_model->activities().at(index).durationMinutes + additionalMinutes;
+    m_model->setDuration(index, newDuration);
+    save();
+    Q_EMIT totalDurationTodayChanged();
+    Q_EMIT statsChanged();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// createExtension (Forks a follow-up activity for the task)
+// ─────────────────────────────────────────────────────────────────────────────
+void ActivityService::createExtension(int index, int minutes)
+{
+    if (index < 0 || index >= m_model->count()) {
+        Q_EMIT errorOccurred("Invalid activity index.");
+        return;
+    }
+
+    const Activity &parent = m_model->activities().at(index);
+    const QString newName = parent.name + " (Extension)";
+    addActivity(newName, parent.category, minutes > 0 ? minutes : 15);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // save — private helper; always call after any mutation
 // ─────────────────────────────────────────────────────────────────────────────
 void ActivityService::save()

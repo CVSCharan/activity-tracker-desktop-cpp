@@ -19,12 +19,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 struct Activity
 {
-    QString  id;                      // Unique identifier (e.g. QUuid string)
-    QString  name;                    // Display name e.g. "Write unit tests"
-    QString  category;                // "Work" | "Learning" | "Personal"
-    int      durationMinutes = 0;     // Planned duration in minutes
-    bool     done            = false; // Completion flag
-    QDateTime createdAt;              // Creation timestamp
+    QString   id;                             // Unique identifier (e.g. QUuid string)
+    QString   name;                           // Display name e.g. "Write unit tests"
+    QString   category;                       // "Work" | "Learning" | "Personal"
+    int       durationMinutes = 0;            // Planned duration in minutes
+    bool      done            = false;        // Completion flag
+    QString   status          = "Created";    // "Created" | "In Progress" | "Done"
+    QDateTime createdAt;                      // Creation timestamp
 
     // ── Convenience factory ───────────────────────────────────────────────────
     // 'static' means it belongs to the struct type, not to an instance.

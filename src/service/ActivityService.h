@@ -49,6 +49,10 @@ public:
     Q_INVOKABLE void removeActivity(int index);
     Q_INVOKABLE void undoLastDelete();
     Q_INVOKABLE void markComplete(int index);
+    Q_INVOKABLE void setActivityStatus(int index, const QString &status);
+    Q_INVOKABLE void reopenActivity(int index);
+    Q_INVOKABLE void extendActivity(int index, int additionalMinutes);
+    Q_INVOKABLE void createExtension(int index, int minutes = 15);
     Q_INVOKABLE void triggerSync();
     Q_INVOKABLE void refresh();
 

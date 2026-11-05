@@ -18,6 +18,7 @@ private slots:
     void testServiceValidation();
     void testServiceUndo();
     void testServiceRefresh();
+    void testTaskLifecycleAndExtension();
     void testJsonStoreSaveAndLoad();
 };
 
@@ -132,6 +133,42 @@ void TestActivityTracker::testServiceRefresh()
     service.refresh();
     QVERIFY(refreshSpy.wait(1500));
     QCOMPARE(refreshSpy.count(), 1);
+}
+
+void TestActivityTracker::testTaskLifecycleAndExtension()
+{
+    ActivityService service;
+    service.addActivity("Deep Work Session", "Work", 45);
+    const int idx = service.model()->count() - 1;
+
+    // Test initial state
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::StatusRole).toString(), QString("Created"));
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::DoneRole).toBool(), false);
+
+    // Set In Progress
+    service.setActivityStatus(idx, "In Progress");
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::StatusRole).toString(), QString("In Progress"));
+
+    // Complete it
+    service.markComplete(idx);
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::DoneRole).toBool(), true);
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::StatusRole).toString(), QString("Done"));
+
+    // Reopen task
+    service.reopenActivity(idx);
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::DoneRole).toBool(), false);
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::StatusRole).toString(), QString("In Progress"));
+
+    // Extend task by +15m
+    service.extendActivity(idx, 15);
+    QCOMPARE(service.model()->data(service.model()->index(idx, 0), ActivityListModel::DurationRole).toInt(), 60);
+
+    // Create follow-up extension activity
+    const int countBefore = service.model()->count();
+    service.createExtension(idx, 20);
+    QCOMPARE(service.model()->count(), countBefore + 1);
+    QCOMPARE(service.model()->activities().last().name, QString("Deep Work Session (Extension)"));
+    QCOMPARE(service.model()->activities().last().durationMinutes, 20);
 }
 
 void TestActivityTracker::testJsonStoreSaveAndLoad()
