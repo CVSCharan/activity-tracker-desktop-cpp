@@ -119,6 +119,8 @@ jobs:
               echo "CRITICAL: Test binary found in macOS bundle!"
               exit 1
           fi
+          # Ad-hoc deep sign all Qt frameworks, dylibs and binary for macOS Apple Silicon
+          codesign --force --deep --sign - build/ActivityTracker.app
           zip -r ActivityTracker-macOS-Release.zip build/ActivityTracker.app
 
       # ── Upload Artifacts ─────────────────────────────────────────────────────

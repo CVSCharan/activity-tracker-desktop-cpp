@@ -18,6 +18,7 @@ class ActivityService : public QObject
 
     // ── Properties exposed to QML ─────────────────────────────────────────────
     Q_PROPERTY(int totalDurationToday READ totalDurationToday NOTIFY totalDurationTodayChanged)
+    Q_PROPERTY(int totalDurationAllTime READ totalDurationAllTime NOTIFY totalDurationTodayChanged)
     Q_PROPERTY(int completedCount READ completedCount NOTIFY statsChanged)
     Q_PROPERTY(int pendingCount READ pendingCount NOTIFY statsChanged)
     Q_PROPERTY(int completionPercentage READ completionPercentage NOTIFY statsChanged)
@@ -33,6 +34,7 @@ public:
 
     // ── Property getters ──────────────────────────────────────────────────────
     int totalDurationToday() const;
+    int totalDurationAllTime() const;
     int completedCount() const;
     int pendingCount() const;
     int completionPercentage() const;

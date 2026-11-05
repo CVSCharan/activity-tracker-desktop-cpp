@@ -14,8 +14,8 @@ Rectangle {
     required property int    durationMinutes
     required property bool   done
     required property int    index
+    required property var    createdAt
     property string status: "Created"
-    property var createdAt: null
 
     readonly property string activeStatus: (typeof card.status !== "undefined" && card.status && card.status.length > 0)
                                            ? card.status

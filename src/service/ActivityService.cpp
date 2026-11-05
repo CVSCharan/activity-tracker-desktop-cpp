@@ -42,6 +42,15 @@ int ActivityService::totalDurationToday() const
     return total;
 }
 
+int ActivityService::totalDurationAllTime() const
+{
+    int total = 0;
+    for (const Activity &a : m_model->activities()) {
+        total += a.durationMinutes;
+    }
+    return total;
+}
+
 int ActivityService::completedCount() const
 {
     int count = 0;

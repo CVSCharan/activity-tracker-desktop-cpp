@@ -218,12 +218,12 @@ GridLayout {
         tagColor: activityService.pendingCount === 0 ? Theme.accentGreen : Theme.accentAmber
     }
 
-    // ── 4. Logged Today Card ──────────────────────────────────────────────────
+    // ── 4. Time Tracked Card ──────────────────────────────────────────────────
     StatCard {
         iconName: "flame"
         statTitle: statsGrid.timeframe === "Today" ? "TIME TODAY" : "TIME TRACKED"
-        statValue: activityService.totalDurationToday + " min"
-        statSubtitle: formatHours(activityService.totalDurationToday)
+        statValue: (statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime) + " min"
+        statSubtitle: formatHours(statsGrid.timeframe === "Today" ? activityService.totalDurationToday : activityService.totalDurationAllTime)
         accentColor: Theme.accentPurple
         showProgressBar: false
         tagText: statsGrid.timeframe === "Today" ? "Daily Log" : statsGrid.timeframe

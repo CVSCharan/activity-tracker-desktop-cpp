@@ -51,9 +51,10 @@ ListView {
 
         readonly property bool matchesTimeframe: {
             if (listView.filterTimeframe === "All Time") return true;
-            if (!model.createdAt) return true;
+            const itemDate = cardDelegate.createdAt;
+            if (!itemDate) return true;
             const now = new Date();
-            const created = new Date(model.createdAt);
+            const created = (itemDate instanceof Date) ? itemDate : new Date(itemDate);
             if (isNaN(created.getTime())) return true;
 
             if (listView.filterTimeframe === "Today") {

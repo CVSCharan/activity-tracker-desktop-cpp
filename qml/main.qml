@@ -22,7 +22,7 @@ ApplicationWindow {
     // ── Persistent Window Geometry & Executive User Preferences ───────────────
     Settings {
         id: appSettings
-        category: "WorkstationPreferences"
+        category: "WorkstationPreferences_v2"
         property int x: -1
         property int y: -1
         property int width: 1080
